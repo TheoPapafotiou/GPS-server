@@ -3,13 +3,15 @@ import numpy as np
 import time
 import math
 from detect_motion import objectTracking
+from skimage.transform import ProjectiveTransform
 
 tracker = objectTracking()
+transformer = ProjectiveTransform()
 size_of_track_w = 100 #cm
 size_of_track_h = 100 #cm
 
 qrCodeDetector = cv2.QRCodeDetector()
-cap = cv2.VideoCapture(0)
+#cap = cv2.VideoCapture(0)
 
 def detect_qr(image, mask):
     masked = cv2.bitwise_and(image, image, mask=mask)
@@ -27,15 +29,14 @@ def center_of_points(points):
     print("Centers are: ", center_x, center_y)
     return center_x, center_y
 
-#frame_init = cv2.imread("test_track_qr.png")
-success, frame_init = cap.read()
+frame_init = cv2.imread("test_track_qr.png")
+#success, frame_init = cap.read()
 #frame_init = cv2.flip(frame_init, 1)
 
 height, width, _ = frame_init.shape
 
 mask = np.zeros((4, height, width), dtype="uint8")
 points = np.zeros((4, 1, 4, 2))
-# decodedText = np.zeros((4, 20), str)
 center_x = np.zeros(4)
 center_y = np.zeros(4)
 # upper left
@@ -62,31 +63,49 @@ while True:
         cv2.imwrite("correct_init_frame.png", frame_init)
         break
 
-# print(points[:])
-for i in range (int(center_x[0]), int(center_x[1]), 20):
-    cv2.line(frame_init, (i, int(center_y[0])), (i, int(center_y[2])), (255, 0, 0), 1, 1)
+# Transform quadrilateral to rectangle
+src = np.asarray([
+                    [center_x[0], center_y[0]], 
+                    [center_x[1], center_y[1]], 
+                    [center_x[2], center_y[2]], 
+                    [center_x[3], center_y[3]]
+                ])
+destination = np.asarray([
+                            [(width - height)/2, 0], 
+                            [width - (width - height)/2, 0], 
+                            [width - (width - height)/2, height], 
+                            [(width - height)/2, height]
+                        ])
+transformer_start = time.time()
+transformer.estimate(src, destination)
+transformer_stop = time.time()
+transformer_duration = transformer_stop - transformer_start
+print(transformer_duration)
 
-for i in range (int(center_y[0]), int(center_y[2]), 20):
-    cv2.line(frame_init, (i, int(center_x[0])), (i, int(center_x[1])), (255, 0, 0), 1, 1)
-
+# Frames initialization
 frame1 = np.zeros((width, height))
 frame2 = np.zeros((width, height))
 frame3 = np.zeros((width, height))
 
-success, frame1 = cap.read()
-#frame1 = cv2.imread('test_track_qr/'+str(1)+'.png')
+#success, frame1 = cap.read()
+frame1 = cv2.imread('test_track_qr/'+str(1)+'.png')
+cv2.imshow("Before transfrom", frame1)
+frame_trans = transformer(frame1)
+cv2.imshow("After transform", frame_trans)
 
 interval_x = 10*(center_x[1] - center_x[0])/size_of_track_w
 interval_y = 10*(center_y[3] - center_y[0])/size_of_track_h
 
 start = time.time()
 count_frames = 0
-while cap.isOpened():
-#for j in range (2, 28):
+
+#while cap.isOpened():
+for j in range (2, 28):
+
     #time.sleep(0.1)
     frame2 = frame1
-    #frame1 = cv2.imread("test_track_qr/"+str(j)+".png")
-    success, frame1 = cap.read()
+    frame1 = cv2.imread("test_track_qr/"+str(j)+".png")
+    #success, frame1 = cap.read()
     frame3, point_x, point_y = tracker.objectTracking(frame1, frame2)
 
     if point_x == 0 and point_y == 0 and (time.time() - start > 80):
