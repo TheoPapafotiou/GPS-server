@@ -4,6 +4,7 @@ import time
 import math
 from detect_motion import objectTracking
 from skimage.transform import ProjectiveTransform
+import matplotlib.pyplot as plt
 
 tracker = objectTracking()
 transformer = ProjectiveTransform()
@@ -29,7 +30,7 @@ def center_of_points(points):
     print("Centers are: ", center_x, center_y)
     return center_x, center_y
 
-frame_init = cv2.imread("test_track_qr.png")
+frame_init = cv2.imread("Test-track/test_track_qr.png")
 #success, frame_init = cap.read()
 #frame_init = cv2.flip(frame_init, 1)
 
@@ -63,24 +64,29 @@ while True:
         cv2.imwrite("correct_init_frame.png", frame_init)
         break
 
+top_left = [center_x[0], center_y[0]]
+top_right = [center_x[1], center_y[1]]
+bottom_left = [center_x[2], center_y[2]]
+bottom_right = [center_x[3], center_y[3]]
+
 # Transform quadrilateral to rectangle
-src = np.asarray([
-                    [center_x[0], center_y[0]], 
-                    [center_x[1], center_y[1]], 
-                    [center_x[2], center_y[2]], 
-                    [center_x[3], center_y[3]]
+src = np.asarray(
+    [bottom_left, top_left, top_right, bottom_right])
+
+dst = np.asarray([
+                [(size_of_track_w - size_of_track_h)/2, size_of_track_h],
+                [(size_of_track_w - size_of_track_h)/2, 0],
+                [size_of_track_w - (size_of_track_w - size_of_track_h)/2, 0],
+                [size_of_track_w - (size_of_track_w - size_of_track_h)/2, size_of_track_h]
                 ])
-destination = np.asarray([
-                            [(width - height)/2, 0], 
-                            [width - (width - height)/2, 0], 
-                            [width - (width - height)/2, height], 
-                            [(width - height)/2, height]
-                        ])
+
 transformer_start = time.time()
-transformer.estimate(src, destination)
+success = transformer.estimate(src, dst)
+print(success)
 transformer_stop = time.time()
 transformer_duration = transformer_stop - transformer_start
-print(transformer_duration)
+if success:
+    print("Duration of the transformation: " + str(transformer_duration))
 
 # Frames initialization
 frame1 = np.zeros((width, height))
@@ -88,10 +94,8 @@ frame2 = np.zeros((width, height))
 frame3 = np.zeros((width, height))
 
 #success, frame1 = cap.read()
-frame1 = cv2.imread('test_track_qr/'+str(1)+'.png')
+frame1 = cv2.imread("Test-track/"+str(1)+".png")
 cv2.imshow("Before transfrom", frame1)
-frame_trans = transformer(frame1)
-cv2.imshow("After transform", frame_trans)
 
 interval_x = 10*(center_x[1] - center_x[0])/size_of_track_w
 interval_y = 10*(center_y[3] - center_y[0])/size_of_track_h
@@ -99,17 +103,19 @@ interval_y = 10*(center_y[3] - center_y[0])/size_of_track_h
 start = time.time()
 count_frames = 0
 
+coord = np.array([])
+
 #while cap.isOpened():
 for j in range (2, 28):
 
-    #time.sleep(0.1)
+    time.sleep(0.1)
     frame2 = frame1
-    frame1 = cv2.imread("test_track_qr/"+str(j)+".png")
+    frame1 = cv2.imread("Test-track/"+str(j)+".png")
     #success, frame1 = cap.read()
     frame3, point_x, point_y = tracker.objectTracking(frame1, frame2)
 
-    if point_x == 0 and point_y == 0 and (time.time() - start > 80):
-        cap.release()
+    # if point_x == 0 and point_y == 0 and (time.time() - start > 80):
+    #     cap.release()
     
     if point_x > 0 and point_y > 0:
         gps_x = point_x - center_x[0]
@@ -131,6 +137,34 @@ for j in range (2, 28):
         count_frames += 1
         cv2.imwrite("test_grid_"+str(count_frames)+".png", frame3)
         print('The GPS coordinates are: X -> ', actual_gps_x, ' || Y -> ', actual_gps_y)
+        if count_frames == 1:
+            coord = np.append(coord, [gps_x, gps_y])
+        else:
+            coord = np.vstack((coord, [gps_x, gps_y]))
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+print(coord)
+data = np.asarray(coord)
+data_trans = transformer(data)
+
+plt.figure()
+x1 = src[[0,1,2,3,0], 0]
+y1 = src[[0,1,2,3,0], 1]
+x2 = data.T[0]
+y2 = data.T[1]
+plt.plot(x1, y1, '-')
+plt.plot(x2, y2, 'o')
+plt.axis([min(x1),max(x1),max(y1),min(y1)])
+plt.grid(True)
+plt.figure()
+x1 = dst[[0,1,2,3,0], 0]
+y1 = dst[[0,1,2,3,0], 1]
+x2 = data_trans.T[0]
+y2 = data_trans.T[1]
+plt.plot(x1, y1, '-')
+plt.plot(x2, y2, 'o')
+plt.axis([min(x1),max(x1),max(y1),min(y1)])
+plt.grid(True)
+plt.show()
