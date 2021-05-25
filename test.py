@@ -1,8 +1,14 @@
 import cv2
+from picamera import PiCamera
+from time import sleep
 
-cap = cv2.VideoCapture(1)
+#cap = cv2.VideoCapture(1)
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
 arucoParams = cv2.aruco.DetectorParameters_create()
+camera = PiCamera()
+
+camera.resolution = (2592, 1944)
+camera.framerate = 15
 
 def detect_ArUco(frame):
     (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
@@ -35,12 +41,15 @@ def detect_ArUco(frame):
 
     return frame, cX, cY
 countFrames = 0
+camera.start_preview()
 while 1:
-    success, img = cap.read()
-
+    #success, img = cap.read()
+    camera.capture('max.jpg')
+    img = cv2.imread('max.jpg')
     img, point_x, point_y = detect_ArUco(img)
     cv2.imshow("Frame", img)
     
     countFrames+=1
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        camera.stop_preview()
         break
