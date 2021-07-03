@@ -2,9 +2,9 @@
 
 import os
 from os.path import expanduser
+import cv2
 import time
 import base64
-import commlib
 from commlib.msg import PubSubMessage, DataClass
 from commlib.transports.mqtt import (
 	Publisher, ConnectionParameters
@@ -21,7 +21,8 @@ class Dispatcher:
 		self.image_path = os.path.join(
 			expanduser("~"), "Desktop", "Random", "image.jpg"
 		)
-		self.delay = 3
+		self.delay = 1
+		self.cap = cv2.VideoCapture(0)
 
 		self.conn_params = ConnectionParameters(
 			host='r4a-platform.ddns.net', 
@@ -38,7 +39,8 @@ class Dispatcher:
 		self.th.start()
 
 	def deploy_image_capture(self):
-		os.system(f"fswebcam --no-banner -r 640x480 -l 3 {self.image_path}")
+		frame = self.cap.read()
+		cv2.imwrite({self.image_path}, frame)
 
 	def start(self):
 		self.running = True

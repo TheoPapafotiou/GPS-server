@@ -7,10 +7,8 @@ from commlib.msg import PubSubMessage, DataClass
 from commlib.transports.mqtt import (
     Subscriber, ConnectionParameters
 )
-from numpy.core.fromnumeric import shape
 from detect_motion import objectTracking
 from skimage.transform import ProjectiveTransform
-import matplotlib.pyplot as plt
 
 tracker = objectTracking()
 transformer = ProjectiveTransform()
