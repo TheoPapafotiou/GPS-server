@@ -1,24 +1,21 @@
-from picamera import PiCamera
+import cv2
+import time
 from time import sleep
+from Merger import Merge_Files
 
-camera = PiCamera()
+Merger = Merge_Files()
+cap0 = cv2.VideoCapture(0)
+cap2 = cv2.VideoCapture(2)
+sleep(4)
 
-camera.resolution = (2592, 1944)
-camera.framerate = 15
+for k in range(0, 4):
+    
+    start = time.time()
+    _, frame0 = cap0.read()
+    _, frame2 = cap2.read()
 
-for effect in camera.IMAGE_EFFECTS:
-    sleep(0.5)
-    camera.image_effect = effect
-    print(effect)
-    camera.start_preview()
-    sleep(2.5)
-    camera.capture('/home/pi/Desktop/'+str(effect)+'.jpg')
-    camera.stop_preview()
+    merged_frame = Merger.get_merged_frame(frame0, frame2)
+    print("Procedure Duration: ", time.time() - start)
 
-for effect in camera.IMAGE_EFFECTS:
-    sleep(0.5)
-    camera.image_effect = effect
-    camera.start_preview()
-    sleep(1.5)
-    camera.capture('/home/pi/Desktop/'+str(effect)+'.jpg')
-    camera.stop_preview()
+
+cv2.imwrite("Merged_frame", merged_frame)
