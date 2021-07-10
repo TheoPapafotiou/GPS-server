@@ -4,8 +4,7 @@ from threading import Thread
 import time
 import cv2
 from GPS_RPI import GPS
-
-cap = cv2.VideoCapture(0)
+from Merger import Merge_Files
 
 class PositionListener(Thread):
 	"""PositionListener simulator aims to populate position variable. 
@@ -17,8 +16,19 @@ class PositionListener(Thread):
 		self.j=1
 		self.countFrames=0
 		
-		self.cap = cv2.VideoCapture(0)
+		self.cap0 = GPS.video(0, 960, 540)
+		time.sleep(2)
+		self.cap2 = GPS.video(2, 960, 540)
+		time.sleep(2)
 
+		if self.cap0 is None:
+			print("Error in cap0")
+			self.cap0.release()
+		if self.cap2 is None:
+			print("Error in cap2")
+			self.cap2.release()
+
+		self.Merger = Merge_Files()
 		self.__running = True
 		
 		Thread.__init__(self) 
@@ -44,10 +54,17 @@ class PositionListener(Thread):
 		while self.__running:
 			# Generate some coordinates
 			self.countFrames+=1
-			_, frame = self.cap.read()
-			self.i, self.j = GPS.tracking_procedure(frame, self.countFrames)
+			_, frame0 = self.cap0.read()
+			_, frame2 = self.cap2.read()
+
+			merged_frame = self.Merger.get_merged_frame(frame0, frame2)
+
+			self.i, self.j = GPS.tracking_procedure(merged_frame, self.countFrames)
 			self.coor = (complex(self.i,self.j),complex(self.i+5,self.j+5))
 
 			# Wait for 0.1 s before next adv
-			time.sleep(0.1)
+			time.sleep(0.5)
+		
+		self.cap0.release()
+		self.cap2.release()
 			

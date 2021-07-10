@@ -35,6 +35,13 @@ class GPS:
         self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
 
+    def video(id, width, height):
+        cap = cv2.VideoCapture(id)
+        cap.set(3, width)
+        cap.set(4, height)
+        
+        return cap
+
     def detect_ArUco_simple(self, frame):
         (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
             self.arucoDict, parameters=self.arucoParams)
