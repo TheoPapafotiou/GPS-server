@@ -14,7 +14,6 @@ class PositionListener(Thread):
 		self.coor = None
 		self.i=1
 		self.j=1
-		self.countFrames=0
 		
 		self.cap0 = GPS.video(0, 960, 540)
 		time.sleep(2)
@@ -29,6 +28,7 @@ class PositionListener(Thread):
 			self.cap2.release()
 
 		self.Merger = Merge_Files()
+		self.GPS = GPS()
 		self.__running = True
 		
 		Thread.__init__(self) 
@@ -50,17 +50,18 @@ class PositionListener(Thread):
 	def run(self):
 		""" 
 		Update coordinates every 0.1 seconds
-		"""        
+		"""
+		countFrames = 0
 		while self.__running:
-			# Generate some coordinates
-			self.countFrames+=1
+            
+			countFrames += 1
 			_, frame0 = self.cap0.read()
 			_, frame2 = self.cap2.read()
 
 			merged_frame = self.Merger.get_merged_frame(frame0, frame2)
 
-			self.i, self.j = GPS.tracking_procedure(merged_frame, self.countFrames)
-			self.coor = (complex(self.i,self.j),complex(self.i+5,self.j+5))
+			self.i, self.j = self.GPS.tracking_procedure(merged_frame, countFrames)
+			self.coor = (complex(self.i,self.j))
 
 			# Wait for 0.1 s before next adv
 			time.sleep(0.5)

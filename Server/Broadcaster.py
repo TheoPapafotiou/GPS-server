@@ -10,7 +10,7 @@ import position_listener
 import json
 
 # ID of the mobile obstacle
-ID = 100
+ID = 1
 # Port used for broadcast
 PORT = 50009
 
@@ -82,7 +82,7 @@ class Broadcaster(Thread):
         # Get new coordinates from listener
         coor = self.__position_listener.coor
         # Construct message to be sent
-        value = {'id':id, 'coor':str(coor[0]), 'rot':str(coor[1])}
+        value = {'id':id, 'coor':str(coor[0])}
         message = json.dumps(value)
         # Debug msg
         print('sending {!r}'.format(message))

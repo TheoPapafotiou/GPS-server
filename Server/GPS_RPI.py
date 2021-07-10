@@ -3,10 +3,6 @@ import cv2
 import sys
 import base64
 import numpy as np
-from commlib.msg import PubSubMessage, DataClass
-from commlib.transports.mqtt import (
-    Subscriber, ConnectionParameters
-)
 
 class GPS:
     def __init__(self):
@@ -15,6 +11,7 @@ class GPS:
         self.size_of_track_h = 400 #cm
         self.init_x = 0 #cm
         self.init_y = 0 #cm
+        self.first_time = True
 
         self.coord = np.array([])
         self.height = 0
@@ -137,9 +134,10 @@ class GPS:
 
     def tracking_procedure(self, img, countFrames):
         
-        if countFrames == 1:
+        if self.first_time is True:
             frame_init = img
             self.height, self.width, _ = frame_init.shape
+            correct_detection = False
 
             while correct_detection is False:
                 frame_init, self.points, correct_detection = self.detect_ArUco(frame_init, flag=0, points=self.points)
@@ -160,12 +158,13 @@ class GPS:
                     self.bottom_left_track = index
                     print("BL: ", self.bottom_left_track)
 
-            interval_x = 10*(self.bottom_right_track[0] - self.top_left_track[0])/self.size_of_track_w
-            interval_y = 10*(self.bottom_right_track[1] - self.top_left_track[1])/self.size_of_track_h
+            self.interval_x = 10*(self.bottom_right_track[0] - self.top_left_track[0])/self.size_of_track_w
+            self.interval_y = 10*(self.bottom_right_track[1] - self.top_left_track[1])/self.size_of_track_h
 
-            cv2.imwrite("Initial_frame", frame_init)
+            cv2.imwrite("Initial_frame.jpg", frame_init)
+            self.first_time = False
 
-        if countFrames >= 1:
+        if self.first_time is False:
             img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
             point_car = points[0]
 
@@ -178,18 +177,18 @@ class GPS:
                                 1, (0, 0, 255), 3)
 
             
-            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(interval_x)):
+            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
                 cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
 
-            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(interval_y)):
+            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
                 cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
 
 
             cv2.imwrite("test_grid_"+str(countFrames)+".png", img)
             print('The GPS coordinates are: X -> ', actual_gps_x, ' || Y -> ', actual_gps_y)
-            if countFrames == 2:
-                self.coord = np.append(self.coord, [gps_x, gps_y])
+            if countFrames == 1:
+                self.coord = np.append(self.coord, [actual_gps_x, actual_gps_y])
             else:
-                self.coord = np.vstack((self.coord, [gps_x, gps_y]))
+                self.coord = np.vstack((self.coord, [actual_gps_x, actual_gps_y]))
         
-        return self.coord[len(self.coord)-1] 
+        return actual_gps_x, actual_gps_y#self.coord[len(self.coord)-1] 
