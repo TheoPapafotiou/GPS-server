@@ -82,7 +82,7 @@ class Broadcaster(Thread):
         # Get new coordinates from listener
         coor = self.__position_listener.coor
         # Construct message to be sent
-        value = {'id':id, 'coor':str(coor[0])}
+        value = {'id':id, 'X':int(coor[0]), 'Y':int(coor[1])}
         message = json.dumps(value)
         # Debug msg
         print('sending {!r}'.format(message))
@@ -103,7 +103,7 @@ def runBroadcaster():
     # Get time stamp when starting tester
     start_time = time.time()
     # Wait until 60 seconds passed
-    while (time.time()-start_time < 60):
+    while (time.time()-start_time < 360):
         time.sleep(0.5)
     # Stop the broadcaster
     broadcaster.stop()
