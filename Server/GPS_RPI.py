@@ -7,7 +7,7 @@ import numpy as np
 class GPS:
     def __init__(self):
         ### Track Params ###
-        self.size_of_track_w = 480 #cm
+        self.size_of_track_w = 530 #cm
         self.size_of_track_h = 400 #cm
         self.init_x = 0 #cm
         self.init_y = 0 #cm
@@ -138,6 +138,7 @@ class GPS:
         
         if self.first_time is True:
             frame_init = img
+            cv2.imwrite("First image.jpg", frame_init)
             self.height, self.width, _ = frame_init.shape
             correct_detection = False
 
@@ -184,14 +185,14 @@ class GPS:
                 actual_gps_y = self.track_height - actual_gps_y
 
                 cv2.putText(img, "X: "+str(int(actual_gps_x))+" & Y: "+str(int(actual_gps_y)), (int(gps_x), int(gps_y)), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (0, 0, 255), 3)
+                                1, (40, 255, 40), 3)
 
             
             for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
-                cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
+                cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (140, 48, 136), 1, 1)
 
             for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
-                cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
+                cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (140, 48, 136), 1, 1)
 
 
             cv2.imwrite("test_grid_"+str(countFrames)+".png", img)
