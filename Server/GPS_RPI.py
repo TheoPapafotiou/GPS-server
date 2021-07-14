@@ -16,6 +16,8 @@ class GPS:
         self.coord = np.array([])
         self.height = 0
         self.width = 0
+        self.track_width = 0.0
+        self.track_height = 0.0
         self.interval_x = 0
         self.interval_y = 0
         self.offset_x = 0
@@ -158,6 +160,9 @@ class GPS:
                     self.bottom_left_track = index
                     print("BL: ", self.bottom_left_track)
 
+            self.track_width = self.bottom_right_track[0] - self.top_left_track[0]
+            self.track_height = self.bottom_right_track[1] - self.top_left_track[1]
+
             self.interval_x = 10*(self.bottom_right_track[0] - self.top_left_track[0])/self.size_of_track_w
             self.interval_y = 10*(self.bottom_right_track[1] - self.top_left_track[1])/self.size_of_track_h
 
@@ -173,6 +178,11 @@ class GPS:
                 gps_y = point_car[1] - self.top_left_track[1]
                 actual_gps_x = self.offset_x + (gps_x * self.size_of_track_w / (self.bottom_right_track[0] - self.top_left_track[0]))
                 actual_gps_y = self.offset_y + (gps_y * self.size_of_track_h / (self.bottom_right_track[1] - self.top_left_track[1]))
+
+                #for the new system to be adopted
+                actual_gps_x = self.track_width - actual_gps_x
+                actual_gps_y = self.track_height - actual_gps_y
+
                 cv2.putText(img, "X: "+str(int(actual_gps_x))+" & Y: "+str(int(actual_gps_y)), (int(gps_x), int(gps_y)), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (0, 0, 255), 3)
 
