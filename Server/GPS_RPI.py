@@ -16,12 +16,12 @@ class GPS:
         self.coord = np.array([])
         self.height = 0
         self.width = 0
-        self.track_width = 0.0
-        self.track_height = 0.0
+        self.track_width = 0.0 #pixels
+        self.track_height = 0.0 #pixels
         self.interval_x = 0
         self.interval_y = 0
-        self.offset_x = 0
-        self.offset_y = 0
+        self.offset_x = -8
+        self.offset_y = +8
         self.points = np.zeros((5, 3))
         self.center_x = np.zeros(4)
         self.center_y = np.zeros(4)
@@ -177,14 +177,14 @@ class GPS:
             if point_car[0] > 0 and point_car[1] > 0:
                 gps_x = point_car[0] - self.top_left_track[0]
                 gps_y = point_car[1] - self.top_left_track[1]
-                actual_gps_x = self.offset_x + (gps_x * self.size_of_track_w / (self.bottom_right_track[0] - self.top_left_track[0]))
-                actual_gps_y = self.offset_y + (gps_y * self.size_of_track_h / (self.bottom_right_track[1] - self.top_left_track[1]))
+                actual_gps_x = (gps_x * self.size_of_track_w / (self.track_width))
+                actual_gps_y = (gps_y * self.size_of_track_h / (self.track_height))
 
                 #for the new system to be adopted
-                actual_gps_x = self.track_width - actual_gps_x
-                actual_gps_y = self.track_height - actual_gps_y
+                final_gps_x = self.offset_x + (self.size_of_track_w - actual_gps_x)
+                final_gps_y = self.offset_y + (self.size_of_track_h - actual_gps_y)
 
-                cv2.putText(img, "X: "+str(int(actual_gps_x))+" & Y: "+str(int(actual_gps_y)), (int(gps_x), int(gps_y)), cv2.FONT_HERSHEY_SIMPLEX,
+                cv2.putText(img, "X: "+str(int(final_gps_x))+" & Y: "+str(int(final_gps_y)), (int(gps_x), int(gps_y)), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (40, 255, 40), 3)
 
             
@@ -196,10 +196,10 @@ class GPS:
 
 
             cv2.imwrite("test_grid_"+str(countFrames)+".png", img)
-            print('The GPS coordinates are: X -> ', actual_gps_x, ' || Y -> ', actual_gps_y)
+            print('The GPS coordinates are: X -> ', final_gps_x, ' || Y -> ', final_gps_y)
             if countFrames == 1:
-                self.coord = np.append(self.coord, [actual_gps_x, actual_gps_y])
+                self.coord = np.append(self.coord, [final_gps_x, final_gps_y])
             else:
-                self.coord = np.vstack((self.coord, [actual_gps_x, actual_gps_y]))
+                self.coord = np.vstack((self.coord, [final_gps_x, final_gps_y]))
         
-        return actual_gps_x, actual_gps_y#self.coord[len(self.coord)-1] 
+        return final_gps_x, final_gps_y#self.coord[len(self.coord)-1] 
