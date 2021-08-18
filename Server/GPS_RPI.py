@@ -71,6 +71,20 @@ class GPS:
                 cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return cX, cY
+
+    def find_center(self, corners):
+        (topLeft, topRight, bottomRight, bottomLeft) = corners
+                    
+        # convert each of the (x, y)-coordinate pairs to integers
+        topRight = (int(topRight[0]), int(topRight[1]))
+        bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+        bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+        topLeft = (int(topLeft[0]), int(topLeft[1]))
+
+        cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+        cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+        return cX, cY
         
     def detect_ArUco(self, frame, flag, points):
 
@@ -109,30 +123,50 @@ class GPS:
                     if counter == 3:
                         correct_detection = True
                 
-                elif flag == 1 and markerID == 10:
-                    counter += 1
-                    # marker corners are always returned in top-left, top-right, bottom-right and bottom-left order
-                    corners = markerCorner.reshape((4, 2))
-                    (topLeft, topRight, bottomRight, bottomLeft) = corners
-                    
-                    # convert each of the (x, y)-coordinate pairs to integers
-                    topRight = (int(topRight[0]), int(topRight[1]))
-                    bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-                    bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-                    topLeft = (int(topLeft[0]), int(topLeft[1]))
-
-                    cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-                    cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                    cv2.circle(frame, (int(cX), int(cY)), radius=5, color=(0, 0, 255), thickness=-1)
-                    cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                elif flag == 1:
 
                     points = np.zeros(shape=(5,3))
-                    points[counter] = (cX, cY, markerID)
+                    cX = 0
+                    cY = 0
+                    oX = 0
+                    oY = 0 
+                    
+                    if markerID == 10:
+                        counter = 0
+                
+                        corners = markerCorner.reshape((4, 2))
+                        cX, cY = self.find_center(corners)
+                        points[counter] = (cX, cY, markerID)
+                
+
+                    elif markerID == 2:
+                        counter = 1
+
+                        corners = markerCorner.reshape((4, 2))
+                        oX, oY = self.find_center(corners)
+                        points[counter] = (oX, oY, markerID)                    
 
                     if cX > 0 and cY > 0:
                         correct_detection = True 
 
         return frame, points, correct_detection
+
+    def actual_gps(self, point_car):
+        
+        final_gps_x = 0
+        final_gps_y = 0
+
+        if point_car[0] > 0 and point_car[1] > 0:
+            gps_x = point_car[0] - self.top_left_track[0]
+            gps_y = point_car[1] - self.top_left_track[1]
+            actual_gps_x = (gps_x * self.size_of_track_w / (self.track_width))
+            actual_gps_y = (gps_y * self.size_of_track_h / (self.track_height))
+
+            #for the new system to be adopted
+            final_gps_x = self.offset_x + (self.size_of_track_w - actual_gps_x)
+            final_gps_y = self.offset_y + (self.size_of_track_h - actual_gps_y)
+        
+        return final_gps_x, final_gps_y
 
     def tracking_procedure(self, img, countFrames):
         
@@ -173,33 +207,17 @@ class GPS:
         if self.first_time is False:
             img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
             point_car = points[0]
+            point_obstacle = points[1]
 
-            if point_car[0] > 0 and point_car[1] > 0:
-                gps_x = point_car[0] - self.top_left_track[0]
-                gps_y = point_car[1] - self.top_left_track[1]
-                actual_gps_x = (gps_x * self.size_of_track_w / (self.track_width))
-                actual_gps_y = (gps_y * self.size_of_track_h / (self.track_height))
+            gps_car_x, gps_car_y = self.actual_gps(point_car)
+            gps_obstacle_x, gps_obstacle_y = self.actual_gps(point_obstacle)
 
-                #for the new system to be adopted
-                final_gps_x = self.offset_x + (self.size_of_track_w - actual_gps_x)
-                final_gps_y = self.offset_y + (self.size_of_track_h - actual_gps_y)
+            print('The car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            print('The obstacle GPS coordinates are: X -> ', gps_obstacle_x, ' || Y -> ', gps_obstacle_y)
 
-                cv2.putText(img, "X: "+str(int(final_gps_x))+" & Y: "+str(int(final_gps_y)), (int(gps_x), int(gps_y)), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (40, 255, 40), 3)
-
-            
-            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
-                cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (140, 48, 136), 1, 1)
-
-            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
-                cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (140, 48, 136), 1, 1)
-
-
-            cv2.imwrite("test_grid_"+str(countFrames)+".png", img)
-            print('The GPS coordinates are: X -> ', final_gps_x, ' || Y -> ', final_gps_y)
             if countFrames == 1:
-                self.coord = np.append(self.coord, [final_gps_x, final_gps_y])
+                self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
             else:
-                self.coord = np.vstack((self.coord, [final_gps_x, final_gps_y]))
+                self.coord = np.vstack((self.coord, [gps_car_x, gps_car_y]))
         
-        return final_gps_x, final_gps_y#self.coord[len(self.coord)-1] 
+        return gps_car_x, gps_car_y, gps_obstacle_x, gps_obstacle_y#self.coord[len(self.coord)-1] 

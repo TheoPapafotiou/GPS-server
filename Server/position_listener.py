@@ -60,8 +60,8 @@ class PositionListener(Thread):
 
 			merged_frame = self.Merger.get_merged_frame(frame0, frame2)
 
-			self.i, self.j = self.GPS.tracking_procedure(merged_frame, countFrames)
-			self.coor = (self.i,self.j)
+			self.i, self.j, self.iX, self.jX = self.GPS.tracking_procedure(merged_frame, countFrames)
+			self.coor = (self.i,self.j,self.iX,self.jX)
 
 			# Wait for 0.1 s before next adv
 # 			print(20*"=")

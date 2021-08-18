@@ -82,7 +82,7 @@ class Broadcaster(Thread):
         # Get new coordinates from listener
         coor = self.__position_listener.coor
         # Construct message to be sent
-        value = {'id':id, 'X':int(coor[0]), 'Y':int(coor[1])}
+        value = {'id':id, 'X':int(coor[0]), 'Y':int(coor[1]), 'X1':int(coor[2]), 'Y1':int(coor[3])}
         message = json.dumps(value)
         # Debug msg
         print('sending {!r}'.format(message))
