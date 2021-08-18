@@ -90,9 +90,12 @@ class GPS:
 
         correct_detection = False
         (corners, ids, _) = cv2.aruco.detectMarkers(frame, self.arucoDict, parameters=self.arucoParams)
-        #print("IDs: ", ids)
+        
+        # print("IDs: ", ids)
         cX = 0
         cY = 0
+        oX = 0
+        oY = 0
 
         if len(corners) > 0:
             # flatten the ArUco IDs list
@@ -101,7 +104,7 @@ class GPS:
 
             # loop over the detected ArUCo corners
             for (markerCorner, markerID) in zip(corners, ids):
-                if flag == 0 and markerID != 10:
+                if flag == 0 and markerID != 10 and markerID != 2:
                     counter += 1
                     # marker corners are always returned in top-left, top-right, bottom-right and bottom-left order
                     corners = markerCorner.reshape((4, 2))
@@ -125,11 +128,7 @@ class GPS:
                 
                 elif flag == 1:
 
-                    points = np.zeros(shape=(5,3))
-                    cX = 0
-                    cY = 0
-                    oX = 0
-                    oY = 0 
+#                     points = np.zeros(shape=(5,3))
                     
                     if markerID == 10:
                         counter = 0
@@ -139,7 +138,7 @@ class GPS:
                         points[counter] = (cX, cY, markerID)
                 
 
-                    elif markerID == 2:
+                    if markerID == 2:
                         counter = 1
 
                         corners = markerCorner.reshape((4, 2))

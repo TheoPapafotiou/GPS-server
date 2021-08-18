@@ -54,6 +54,7 @@ class PositionListener(Thread):
 		countFrames = 0
 		while self.__running:
             
+			start = time.time()
 			countFrames += 1
 			_, frame0 = self.cap0.read()
 			_, frame2 = self.cap2.read()
@@ -62,6 +63,7 @@ class PositionListener(Thread):
 
 			self.i, self.j, self.iX, self.jX = self.GPS.tracking_procedure(merged_frame, countFrames)
 			self.coor = (self.i,self.j,self.iX,self.jX)
+			print("Time for GPS: ", time.time() - start)
 
 			# Wait for 0.1 s before next adv
 # 			print(20*"=")
