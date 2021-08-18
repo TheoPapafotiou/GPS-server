@@ -103,7 +103,7 @@ def runBroadcaster():
     # Get time stamp when starting tester
     start_time = time.time()
     # Wait until 60 seconds passed
-    while (time.time()-start_time < 360):
+    while (time.time()-start_time < 1000):
         time.sleep(0.5)
     # Stop the broadcaster
     broadcaster.stop()

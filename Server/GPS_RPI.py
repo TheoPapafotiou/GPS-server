@@ -7,8 +7,8 @@ import numpy as np
 class GPS:
     def __init__(self):
         ### Track Params ###
-        self.size_of_track_w = 530 #cm
-        self.size_of_track_h = 400 #cm
+        self.size_of_track_w = 460 #cm
+        self.size_of_track_h = 390 #cm
         self.init_x = 0 #cm
         self.init_y = 0 #cm
         self.first_time = True
@@ -20,8 +20,8 @@ class GPS:
         self.track_height = 0.0 #pixels
         self.interval_x = 0
         self.interval_y = 0
-        self.offset_x = -8
-        self.offset_y = +8
+        self.offset_x = 0
+        self.offset_y = 0
         self.points = np.zeros((5, 3))
         self.center_x = np.zeros(4)
         self.center_y = np.zeros(4)
