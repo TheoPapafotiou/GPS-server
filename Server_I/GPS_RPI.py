@@ -211,8 +211,8 @@ class GPS:
             gps_car_x, gps_car_y = self.actual_gps(point_car)
             gps_obstacle_x, gps_obstacle_y = self.actual_gps(point_obstacle)
 
-            print('The car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
-            print('The obstacle GPS coordinates are: X -> ', gps_obstacle_x, ' || Y -> ', gps_obstacle_y)
+            #print('The car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            #print('The obstacle GPS coordinates are: X -> ', gps_obstacle_x, ' || Y -> ', gps_obstacle_y)
 
             if countFrames == 1:
                 self.coord = np.append(self.coord, [gps_car_x, gps_car_y])

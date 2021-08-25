@@ -199,7 +199,7 @@ class GPS:
 
             gps_car_x, gps_car_y = self.actual_gps(point_car)
 
-            print('The car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
 
             if countFrames == 1:
                 self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
