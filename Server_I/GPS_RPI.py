@@ -23,6 +23,7 @@ class GPS:
         self.offset_x = 0
         self.offset_y = 0
         self.points = np.zeros((5, 3))
+        self.points_not_init = np.zeros((5, 3))
         self.center_x = np.zeros(4)
         self.center_y = np.zeros(4)
         self.bottom_left_track = np.zeros((2))
@@ -96,6 +97,8 @@ class GPS:
         cY = 0
         oX = 0
         oY = 0
+        
+        points_not_init = np.zeros(shape=(5,3))
 
         if len(corners) > 0:
             # flatten the ArUco IDs list
@@ -127,15 +130,13 @@ class GPS:
                         correct_detection = True
                 
                 elif flag == 1:
-
-#                     points = np.zeros(shape=(5,3))
                     
                     if markerID == 10:
                         counter = 0
                 
                         corners = markerCorner.reshape((4, 2))
                         cX, cY = self.find_center(corners)
-                        points[counter] = (cX, cY, markerID)
+                        points_not_init[counter] = (cX, cY, markerID)
                 
 
                     if markerID == 2:
@@ -143,12 +144,12 @@ class GPS:
 
                         corners = markerCorner.reshape((4, 2))
                         oX, oY = self.find_center(corners)
-                        points[counter] = (oX, oY, markerID)                    
+                        points_not_init[counter] = (oX, oY, markerID)                    
 
                     if cX > 0 and cY > 0:
                         correct_detection = True 
 
-        return frame, points, correct_detection
+        return frame, points, points_not_init, correct_detection
 
     def actual_gps(self, point_car):
         
@@ -176,7 +177,7 @@ class GPS:
             correct_detection = False
 
             while correct_detection is False:
-                frame_init, self.points, correct_detection = self.detect_ArUco(frame_init, flag=0, points=self.points)
+                frame_init, self.points, self.points_not_init, correct_detection = self.detect_ArUco(frame_init, flag=0, points=self.points)
                 print(self.points)
 
             for i in range(0, 4):
@@ -204,9 +205,9 @@ class GPS:
             self.first_time = False
 
         if self.first_time is False:
-            img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
-            point_car = points[0]
-            point_obstacle = points[1]
+            img, points, points_not_init, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
+            point_car = points_not_init[0]
+            point_obstacle = points_not_init[1]
 
             gps_car_x, gps_car_y = self.actual_gps(point_car)
             gps_obstacle_x, gps_obstacle_y = self.actual_gps(point_obstacle)

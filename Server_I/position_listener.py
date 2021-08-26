@@ -73,7 +73,7 @@ class PositionListener(Thread):
     # 			print(20*"=")
     # 			print("COUNT 10")
     # 			print(20*"=")
-            time.sleep(0.5)
+            time.sleep(0.1)
         
         self.cap0.release()
         self.cap2.release()

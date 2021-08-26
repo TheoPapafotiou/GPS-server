@@ -104,7 +104,7 @@ def runBroadcaster():
     start_time = time.time()
     # Wait until 60 seconds passed
     while (time.time()-start_time < 1000):
-        time.sleep(0.5)
+        time.sleep(0.4)
     # Stop the broadcaster
     broadcaster.stop()
     # Stop the siumlated position listener
