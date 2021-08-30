@@ -1,0 +1,2 @@
+# GPS-server
+This is a repository where a GPS server is implemented. This server uses one (or more) web-cam(s) connected in a computer, Raspberry Pi or something else and the area of interest. The boundaries of the area-of-interest are determined by QR codes (corners == centers of the QR codes). The object can be detected in 3 ways: using motion detection (of the object), color detection (of the object) or QR code detection (placed on the object). The poisiton is then normalized based on the actual size of the area-of-interest.
