@@ -8,14 +8,15 @@ import math
 class GPS:
     def __init__(self):
         ### Track Params ###
-        self.size_of_track_w = 460 #cm
-        self.size_of_track_h = 390 #cm
+        self.size_of_track_w = 440 #cm
+        self.size_of_track_h = 360 #cm
         self.init_x = 0 #cm
         self.init_y = 0 #cm
         self.first_time = True
+        self.first_image = np.zeros((1500, 1000))
 
         self.ID = 10
-        self.height_camera = 300
+        self.height_camera = 280
         self.height_human = 185
 
         self.coord = np.array([])
@@ -166,8 +167,8 @@ class GPS:
         c1 = 0
         c2 = 0
 
-        center_cam = [[300, 100],
-                        [350, 300]]
+        center_cam = [[200, 70],
+                        [320, 270]]
 
         cameraID = 0
 
@@ -181,7 +182,13 @@ class GPS:
         D = (d * self.height_camera)/(self.height_camera - self.height_human)
         print(D)
 
-        k = (b2 - a2)/(b1 - a1)
+        try:
+            k = (b2 - a2)/(b1 - a1)
+        except Exception as e:
+            print(e)
+            k = 0
+            pass
+
         t = a2 - k*a1
         a = k**2 + 1
         b = 2*t - 2*a1 - 2*a2*k
@@ -225,13 +232,14 @@ class GPS:
     def tracking_procedure(self, img, countFrames):
         
         if self.first_time is True:
-            frame_init = img
-            cv2.imwrite("First image.jpg", frame_init)
-            self.height, self.width, _ = frame_init.shape
+            self.first_image = img
+
+            cv2.imwrite("First image.jpg", self.first_image)
+            self.height, self.width, _ = self.first_image.shape
             correct_detection = False
 
             while correct_detection is False:
-                frame_init, self.points, correct_detection = self.detect_ArUco(frame_init, flag=0, points=self.points)
+                self.first_image, self.points, correct_detection = self.detect_ArUco(self.first_image, flag=0, points=self.points)
                 print(self.points)
 
             for i in range(0, 4):
@@ -255,18 +263,35 @@ class GPS:
             self.interval_x = 10*(self.bottom_right_track[0] - self.top_left_track[0])/self.size_of_track_w
             self.interval_y = 10*(self.bottom_right_track[1] - self.top_left_track[1])/self.size_of_track_h
 
-            cv2.imwrite("Initial_frame.jpg", frame_init)
+            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
+                cv2.line(self.first_image, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
+
+            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
+                cv2.line(self.first_image, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
+
+            #cv2.imwrite("Initial_frame.jpg", self.first_image)
             self.first_time = False
 
         if self.first_time is False:
             img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
+
+            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
+                cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
+
+            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
+                cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
+
             point_head = points[0]
 
-            point_human = self.project_points(point_head) 
+            point_head_x, point_head_y = self.actual_gps(point_head)
+            point_human = self.project_points((point_head_x, point_head_y))
 
             gps_car_x, gps_car_y = self.actual_gps(point_human)
 
-            print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
+            cv2.putText(img, "X: " + str(gps_car_x) + ", Y: " + str(gps_car_y), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+            cv2.imwrite("Frame_" + str(countFrames) + '.jpg', img)
 
             if countFrames == 1:
                 self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
