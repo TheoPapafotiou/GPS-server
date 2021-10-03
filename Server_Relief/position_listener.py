@@ -63,6 +63,7 @@ class PositionListener(Thread):
 
 			self.i, self.j = self.GPS.tracking_procedure(merged_frame, countFrames)
 			self.coor = (self.i,self.j)
+			print()
 			print("!-"*20)
 			print("X: ", self.coor[0], " and Y: ", self.coor[1])			
 			print("Time for GPS: ", time.time() - start)

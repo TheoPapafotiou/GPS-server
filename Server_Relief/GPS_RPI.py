@@ -15,9 +15,9 @@ class GPS:
         self.first_time = True
         self.first_image = np.zeros((1500, 1000))
 
-        self.ID = 10
+        self.ID = 4
         self.height_camera = 280
-        self.height_human = 185
+        self.height_human = 140
 
         self.coord = np.array([])
         self.height = 0
@@ -108,7 +108,7 @@ class GPS:
 
             # loop over the detected ArUCo corners
             for (markerCorner, markerID) in zip(corners, ids):
-                if flag == 0 and markerID != 10:
+                if flag == 0 and markerID != self.ID:
                     counter += 1
                     # marker corners are always returned in top-left, top-right, bottom-right and bottom-left order
                     corners = markerCorner.reshape((4, 2))
@@ -134,7 +134,7 @@ class GPS:
 
 #                     points = np.zeros(shape=(5,3))
                     
-                    if markerID == 10:
+                    if markerID == self.ID:
                         counter = 0
                 
                         corners = markerCorner.reshape((4, 2))
@@ -167,7 +167,7 @@ class GPS:
         c1 = 0
         c2 = 0
 
-        center_cam = [[200, 70],
+        center_cam = [[194, 77],
                         [320, 270]]
 
         cameraID = 0
@@ -178,9 +178,9 @@ class GPS:
         b2 = point_head[1]
 
         d = math.sqrt((a1 - b1)**2 + (a2 - b2)**2)
-        print(d)
-        D = (d * self.height_camera)/(self.height_camera - self.height_human)
-        print(D)
+        print("d: ", d)
+        D = (d * (self.height_camera - self.height_human))/(self.height_camera)
+        print("D: ", D)
 
         try:
             k = (b2 - a2)/(b1 - a1)
@@ -191,8 +191,11 @@ class GPS:
 
         t = a2 - k*a1
         a = k**2 + 1
-        b = 2*t - 2*a1 - 2*a2*k
+        b = 2*k*t - 2*a1 - 2*a2*k
         c = t**2 + a1**2 + a2**2 - 2*a2*t - D**2
+        print("a: ", a)
+        print("b: ", b)
+        print("c: ", c)
 
         roots = self.quad_equation(a, b, c) 
 
@@ -275,6 +278,9 @@ class GPS:
         if self.first_time is False:
             img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
 
+            if correct_detection == False:
+                print("ERRRRRRROOOR!")
+
             for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
                 cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
 
@@ -283,12 +289,15 @@ class GPS:
 
             point_head = points[0]
 
+            print("Point_head: ", point_head)
             point_head_x, point_head_y = self.actual_gps(point_head)
+            print("Point_head_X, _Y: ", point_head_x, point_head_y)
             point_human = self.project_points((point_head_x, point_head_y))
+            print("Point_human: ", point_human)
 
             gps_car_x, gps_car_y = self.actual_gps(point_human)
 
-            cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
+            #cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
             cv2.putText(img, "X: " + str(gps_car_x) + ", Y: " + str(gps_car_y), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
             cv2.imwrite("Frame_" + str(countFrames) + '.jpg', img)
