@@ -18,6 +18,7 @@ class GPS:
         self.ID = 4
         self.height_camera = 280
         self.height_human = 140
+        self.camera_limits_y = 175
 
         self.coord = np.array([])
         self.height = 0
@@ -163,14 +164,14 @@ class GPS:
         
         return final_gps_x, final_gps_y
 
-    def project_points(self, point_head):
+    def project_points(self, point_head, cameraID):
         c1 = 0
         c2 = 0
 
         center_cam = [[194, 77],
                         [320, 270]]
 
-        cameraID = 0
+        #cameraID = 0
 
         a1 = center_cam[cameraID][0]
         a2 = center_cam[cameraID][1]
@@ -292,7 +293,14 @@ class GPS:
             print("Point_head: ", point_head)
             point_head_x, point_head_y = self.actual_gps(point_head)
             print("Point_head_X, _Y: ", point_head_x, point_head_y)
-            point_human = self.project_points((point_head_x, point_head_y))
+
+            cameraID = 0
+            if point_head_y < self.camera_limits_y:
+                cameraID = 0
+            else:
+                cameraID = 1
+                
+            point_human = self.project_points((point_head_x, point_head_y), cameraID)
             print("Point_human: ", point_human)
 
             gps_car_x, gps_car_y = self.actual_gps(point_human)
