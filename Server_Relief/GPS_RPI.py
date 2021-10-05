@@ -18,7 +18,7 @@ class GPS:
         self.ID = 4
         self.height_camera = 280
         self.height_human = 140
-        self.camera_limits_y = 175
+        self.camera_limits_y = 200
 
         self.coord = np.array([])
         self.height = 0
@@ -38,7 +38,7 @@ class GPS:
         self.top_right_track = np.zeros((2))
 
         ### Aruco Params ###
-        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
+        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_250)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
 
     def video(id, width, height):
@@ -169,7 +169,7 @@ class GPS:
         c2 = 0
 
         center_cam = [[194, 77],
-                        [320, 270]]
+                        [322, 272]]
 
         #cameraID = 0
 
@@ -281,29 +281,32 @@ class GPS:
 
             if correct_detection == False:
                 print("ERRRRRRROOOR!")
-
-            for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
-                cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
-
-            for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
-                cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
-
-            point_head = points[0]
-
-            print("Point_head: ", point_head)
-            point_head_x, point_head_y = self.actual_gps(point_head)
-            print("Point_head_X, _Y: ", point_head_x, point_head_y)
-
-            cameraID = 0
-            if point_head_y < self.camera_limits_y:
-                cameraID = 0
+                gps_car_x = 0.0
+                gps_car_y = 0.0
+            
             else:
-                cameraID = 1
-                
-            point_human = self.project_points((point_head_x, point_head_y), cameraID)
-            print("Point_human: ", point_human)
+                for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
+                    cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
 
-            gps_car_x, gps_car_y = self.actual_gps(point_human)
+                for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
+                    cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
+
+                point_head = points[0]
+
+                print("Point_head: ", point_head)
+                point_head_x, point_head_y = self.actual_gps(point_head)
+                print("Point_head_X, _Y: ", point_head_x, point_head_y)
+
+                cameraID = 0
+                if point_head_y < self.camera_limits_y:
+                    cameraID = 0
+                else:
+                    cameraID = 1
+                    
+                point_human = self.project_points((point_head_x, point_head_y), cameraID)
+                print("Point_human: ", point_human)
+
+                gps_car_x, gps_car_y = self.actual_gps(point_human)
 
             #cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
             cv2.putText(img, "X: " + str(gps_car_x) + ", Y: " + str(gps_car_y), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)

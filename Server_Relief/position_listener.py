@@ -65,8 +65,8 @@ class PositionListener(Thread):
 			self.coor = (self.i,self.j)
 			print()
 			print("!-"*20)
-			print("X: ", self.coor[0], " and Y: ", self.coor[1])			
-			print("Time for GPS: ", time.time() - start)
+			# print("X: ", self.coor[0], " and Y: ", self.coor[1])			
+			# print("Time for GPS: ", time.time() - start)
 
 			# Wait for 0.1 s before next adv
 # 			print(20*"=")
