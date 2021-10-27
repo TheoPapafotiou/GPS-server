@@ -59,6 +59,8 @@ class PositionListener(Thread):
 			_, frame0 = self.cap0.read()
 			_, frame2 = self.cap2.read()
 
+			cv2.imwrite("Frame02.jpg", frame0)
+			cv2.imwrite("Frame12.jpg", frame2)
 			merged_frame = self.Merger.get_merged_frame(frame0, frame2)
 
 			self.i, self.j = self.GPS.tracking_procedure(merged_frame, countFrames)

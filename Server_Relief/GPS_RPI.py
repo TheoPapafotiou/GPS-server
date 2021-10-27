@@ -83,6 +83,8 @@ class GPS:
         cY = 0
         H1_arucos = 0
         H2_arucos = 0
+        theta_H1 = 0.0
+        theta_H2 = 0.0
 
         if len(corners) > 0:
             # flatten the ArUco IDs list
@@ -91,7 +93,8 @@ class GPS:
 
             # loop over the detected ArUCo corners
             for (markerCorner, markerID) in zip(corners, ids):
-                if flag == 0 and markerID != self.ID:
+                if flag == 0 and markerID != self.ID1[0] and markerID != self.ID1[1] \
+                    and markerID != self.ID2[0] and markerID != self.ID2[1]:
                     counter += 1
                     # marker corners are always returned in top-left, top-right, bottom-right and bottom-left order
                     corners = markerCorner.reshape((4, 2))
@@ -354,25 +357,26 @@ class GPS:
         if self.first_time is False:
             img, points, correct_detection, correct_detection_H1, correct_detection_H2, H1_arucos, H2_arucos, theta_H1, theta_H2 = self.detect_ArUco(img, flag=1, points=self.points)
 
-            if correct_detection_H1 == False:
+            point_head = np.zeros(shape=(5,3))
+            gps_human = np.zeros(shape=(4,3))
+
+            if correct_detection_H1 is False:
                 print("ERRRRRRROOOR H1!")
                 gps_car_x = 0.0
                 gps_car_y = 0.0
 
-            if correct_detection_H2 == False:
+            if correct_detection_H2 is False:
                 print("ERRRRRRROOOR H2!")
                 gps_car_x = 0.0
                 gps_car_y = 0.0
             
-            else:
+            elif correct_detection_H1 is True or correct_detection_H2 is True:
                 for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
                     cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
 
                 for p in range (int(self.top_left_track[1]), int(self.bottom_right_track[1]), int(self.interval_y)):
                     cv2.line(img, (int(self.top_left_track[0]), p), (int(self.bottom_right_track[0]), p), (255, 0, 0), 1, 1)
 
-                point_head = np.zeros(shape=(5,3))
-                gps_human = np.zeros(shape=(4,3))
                 for i in range(H1_arucos + H2_arucos):
                     if points[i][2] == self.ID1[0]:
                         point_head[0] = points[i]
