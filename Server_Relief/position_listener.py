@@ -12,8 +12,6 @@ class PositionListener(Thread):
 	def __init__(self):
 
 		self.coor = None
-		self.i=1
-		self.j=1
 		
 		self.cap0 = GPS.video(0, 960, 540)
 		time.sleep(2)
@@ -30,6 +28,7 @@ class PositionListener(Thread):
 		self.Merger = Merge_Files()
 		self.GPS = GPS()
 		self.__running = True
+		self.file = open("Experiment_1.txt", "w")
 		
 		Thread.__init__(self) 
 
@@ -63,8 +62,9 @@ class PositionListener(Thread):
 			cv2.imwrite("Frame12.jpg", frame2)
 			merged_frame = self.Merger.get_merged_frame(frame0, frame2)
 
-			self.i, self.j = self.GPS.tracking_procedure(merged_frame, countFrames)
-			self.coor = (self.i,self.j)
+			gps_H1, gps_H2, theta_H1, theta_H2, time_stamp = self.GPS.tracking_procedure(merged_frame, countFrames)
+			L = str(time_stamp) + "\t" + str(gps_H1) + "\t" + str(gps_H2) + "\t" + str(theta_H1) + "\t" + str(theta_H2) + "\n"
+			self.file.write(L)
 			print()
 			print("!-"*20)
 			# print("X: ", self.coor[0], " and Y: ", self.coor[1])			
@@ -76,6 +76,7 @@ class PositionListener(Thread):
 # 			print(20*"=")
 			time.sleep(0.5)
 		
+		self.file.close()
 		self.cap0.release()
 		self.cap2.release()
 			

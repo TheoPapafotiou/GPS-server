@@ -10,8 +10,8 @@ from numpy.lib.function_base import median
 class GPS:
     def __init__(self):
         ### Track Params ###
-        self.size_of_track_w = 440 #cm
-        self.size_of_track_h = 360 #cm
+        self.size_of_track_w = 285 #440 #cm
+        self.size_of_track_h = 340 #cm
         self.init_x = 0 #cm
         self.init_y = 0 #cm
         self.first_time = True
@@ -20,9 +20,9 @@ class GPS:
         self.ID1 = [0, 1]
         self.ID2 = [2, 3]
         self.height_camera = 280
-        self.height_human = 140
+        self.height_human = 80
         self.camera_limits_y = 200
-        self.aruco_centerBody = 30
+        self.aruco_centerBody = 29
         self.gps_H1 = (0.0, 0.0)
         self.gps_H2 = (0.0, 0.0)
 
@@ -65,9 +65,17 @@ class GPS:
 
         cX = int((topLeft[0] + bottomRight[0]) / 2.0)
         cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-        theta_1 = math.atan2((topLeft[1] - bottomLeft[1]), (topLeft[0] - bottomLeft[0]))
-        theta_2 = math.atan2((topRight[1] - bottomRight[1]), (topRight[0] - bottomRight[0]))
+        theta_1 = math.degrees(math.atan2((topLeft[1] - bottomLeft[1]), (topLeft[0] - bottomLeft[0])))
+        theta_2 = math.degrees(math.atan2((topRight[1] - bottomRight[1]), (topRight[0] - bottomRight[0])))
+        
+        print()
+        print("Theta 1 = ", theta_1)
+        print("Theta_2 = ", theta_2)
         theta = round((theta_1 + theta_2)//2, 1)
+        if theta >= 0:
+            theta -= 180
+        elif theta < 0:
+            theta += 180
 
         return cX, cY, theta
         
@@ -118,7 +126,6 @@ class GPS:
                 
                 elif flag == 1:
 
-#                     points = np.zeros(shape=(5,3))
                     if markerID == self.ID1[0] or markerID == self.ID1[1]:
                         H1_arucos += 1
                         counter += 1
@@ -140,6 +147,11 @@ class GPS:
 
                         if cX > 0 and cY > 0:
                             correct_detection_H2 = True                 
+
+        print()
+        print("H1_arucos: ", H1_arucos)
+        print("H2_arucos: ", H2_arucos)
+        print()
 
         return frame, points, correct_detection, correct_detection_H1, correct_detection_H2, H1_arucos, H2_arucos, theta_H1, theta_H2
 
@@ -164,8 +176,8 @@ class GPS:
         c1 = 0
         c2 = 0
 
-        center_cam = [[194, 77],
-                        [322, 272]]
+        center_cam = [[53,78],# [194, 77],
+                        [181, 272]] # [322, 272]]
 
         #cameraID = 0
 
@@ -243,9 +255,9 @@ class GPS:
         point_human = self.project_points((point_head_x, point_head_y), cameraID)
         print("Point_human: ", point_human)
 
-        gps_x, gps_y = self.actual_gps(point_human)
+        # gps_x, gps_y = self.actual_gps(point_human)
 
-        return gps_x, gps_y, point_head[2]
+        return point_human[0], point_human[1], point_head[2]
 
     def turn_gps(self, gps_aruco, theta, direction):
 
@@ -263,17 +275,17 @@ class GPS:
         y_diff = self.aruco_centerBody*math.sin(phi)
 
         if 0 <= theta <= 90:
-            gps_Hx = gps_aruco[0] - math.copysign(1, direction) * x_diff
-            gps_Hy = gps_aruco[1] + math.copysign(1, direction) * y_diff
+            gps_Hx = gps_aruco[0] + math.copysign(1, direction) * x_diff
+            gps_Hy = gps_aruco[1] - math.copysign(1, direction) * y_diff
         elif 90 < theta <= 180:
-            gps_Hx = gps_aruco[0] - math.copysign(1, direction) * x_diff
-            gps_Hy = gps_aruco[1] - math.copysign(1, direction) * y_diff
-        elif -90 <= theta < 0:
             gps_Hx = gps_aruco[0] + math.copysign(1, direction) * x_diff
             gps_Hy = gps_aruco[1] + math.copysign(1, direction) * y_diff
-        else:
-            gps_Hx = gps_aruco[0] + math.copysign(1, direction) * x_diff
+        elif -90 <= theta < 0:
+            gps_Hx = gps_aruco[0] - math.copysign(1, direction) * x_diff
             gps_Hy = gps_aruco[1] - math.copysign(1, direction) * y_diff
+        else:
+            gps_Hx = gps_aruco[0] - math.copysign(1, direction) * x_diff
+            gps_Hy = gps_aruco[1] + math.copysign(1, direction) * y_diff
 
         gps_H = (gps_Hx, gps_Hy)
 
@@ -285,14 +297,19 @@ class GPS:
             self.gps_H1 = ((gps_human[0][0] + gps_human[1][0])/2, (gps_human[0][1] + gps_human[1][1])/2)
         elif H1_arucos == 1:
             for i in range(0, 2):
-                if gps_human[i][2] == self.ID1[0]:
+                print("For i = ", i, ", it is: ", int(gps_human[i][2]) == self.ID1[0])
+                if int(gps_human[i][2]) == self.ID1[0]:
                     direction = -1
                     gps_h = gps_human[i]
-                elif gps_human[i][2] == self.ID1[1]:
+                elif int(gps_human[i][2]) == self.ID1[1]:
                     direction = 1
                     gps_h = gps_human[i]
 
             self.gps_H1 = self.turn_gps((gps_h[0], gps_h[1]), theta_H1, direction)
+            print()
+            print("Aruco one GPS: ", (gps_h[0], gps_h[1]))
+            print("Center Human after turn: ", self.gps_H1)
+            print()
         else:
             print("No Human 1 detected. Errrrrrror!")
 
@@ -300,10 +317,10 @@ class GPS:
             self.gps_H2 = ((gps_human[2][0] + gps_human[3][0])/2, (gps_human[2][1] + gps_human[3][1])/2)
         elif H2_arucos == 1:
             for i in range(2, 4):
-                if gps_human[i][2] == self.ID2[0]:
+                if int(gps_human[i][2]) == self.ID2[0]:
                     direction = -1
                     gps_h = gps_human[i]
-                elif gps_human[i][2] == self.ID2[1]:
+                elif int(gps_human[i][2]) == self.ID2[1]:
                     direction = 1
                     gps_h = gps_human[i]
 
@@ -324,6 +341,7 @@ class GPS:
                 self.first_image, self.points, correct_detection, _, _, _, _, _, _ = self.detect_ArUco(self.first_image, flag=0, points=self.points)
                 print(self.points)
 
+            time_stamp = time.time()    
             for i in range(0, 4):
                 index = [self.points[i][0], self.points[i][1]]
                 if self.points[i][2] == 6:
@@ -356,21 +374,12 @@ class GPS:
 
         if self.first_time is False:
             img, points, correct_detection, correct_detection_H1, correct_detection_H2, H1_arucos, H2_arucos, theta_H1, theta_H2 = self.detect_ArUco(img, flag=1, points=self.points)
+            time_stamp = time.time()
 
-            point_head = np.zeros(shape=(5,3))
-            gps_human = np.zeros(shape=(4,3))
-
-            if correct_detection_H1 is False:
-                print("ERRRRRRROOOR H1!")
-                gps_car_x = 0.0
-                gps_car_y = 0.0
-
-            if correct_detection_H2 is False:
-                print("ERRRRRRROOOR H2!")
-                gps_car_x = 0.0
-                gps_car_y = 0.0
+            point_head = np.ones(shape=(5,3)) * 20
+            gps_human = np.ones(shape=(4,3)) * 20
             
-            elif correct_detection_H1 is True or correct_detection_H2 is True:
+            if correct_detection_H1 is True or correct_detection_H2 is True:
                 for k in range (int(self.top_left_track[0]), int(self.bottom_right_track[0]), int(self.interval_x)):
                     cv2.line(img, (k, int(self.top_left_track[1])), (k, int(self.bottom_right_track[1])), (255, 0, 0), 1, 1)
 
@@ -391,19 +400,30 @@ class GPS:
                         point_head[3] = points[i]
                         gps_human[3][0], gps_human[3][1], gps_human[3][2] = self.gps_aruco_human(point_head[3])
 
+            print(gps_human)
             self.gps_center_human(gps_human, H1_arucos, H2_arucos, theta_H1, theta_H2)
 
-            #cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
-            cv2.putText(img, "X: " + str(gps_car_x) + ", Y: " + str(gps_car_y), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-            cv2.imwrite("Frame_" + str(countFrames) + '.jpg', img)
-
-            if countFrames == 1:
-                self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
+            print()
+            if correct_detection_H1 is False:
+                print("ERRRRRRROOOR H1!")
             else:
-                self.coord = np.vstack((self.coord, [gps_car_x, gps_car_y]))
+                print("GPS_H1 is -->  X = ", self.gps_H1[0], " and Y = ", self.gps_H1[1], " with theta = ", theta_H1)
+
+            if correct_detection_H2 is False:
+                print("ERRRRRRROOOR H2!") 
+            else:
+                print("GPS_H2 is -->  X = ", self.gps_H2[0], " and Y = ", self.gps_H2[1], " with theta = ", theta_H2)
+
+            # cv2.circle(img, (int(point_head[0]), int(point_head[0])), radius=5, color=(0, 0, 255), thickness=-1)
+            # cv2.putText(img, "X: " + str(gps_car_x) + ", Y: " + str(gps_car_y), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # cv2.imwrite("Frame_" + str(countFrames) + '.jpg', img)
+
+            # if countFrames == 1:
+            #     self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
+            # else:
+            #     self.coord = np.vstack((self.coord, [gps_car_x, gps_car_y]))
         
-        return gps_car_x, gps_car_y#self.coord[len(self.coord)-1] 
+        return self.gps_H1, self.gps_H2, theta_H1, theta_H2, time_stamp
 
 
 # gps = GPS()
