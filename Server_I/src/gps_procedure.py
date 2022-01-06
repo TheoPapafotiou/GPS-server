@@ -1,7 +1,4 @@
-import time
 import cv2
-import sys
-import base64
 import numpy as np
 
 class GPS_PROC:
@@ -172,6 +169,6 @@ class GPS_PROC:
             if countFrames == 1:
                 self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
             else:
-                self.coord = np.vstack((self.coord, [gps_car_x, gps_car_y]))
+                self.coord = np.vstack(self.coord, [gps_car_x, gps_car_y])
         
         return self.coord[len(self.coord)-1] 

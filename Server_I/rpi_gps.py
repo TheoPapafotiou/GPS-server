@@ -5,17 +5,15 @@ import time
 import cv2
 import socket
 import json
-from gps_procedure import GPS_PROC
+from src.gps_procedure import GPS_PROC
 
-class PositionListener(Thread):
+class GPSBroadcaster(Thread):
     """PositionListener simulator aims to populate position variable. 
     """
     def __init__(self, RPI_ID, PORT, params):
 
         self.RPI_ID = RPI_ID
         self.coor = None
-        self.i=1
-        self.j=1
         
         self.cap = self.video(0, params["cap_width"], params["cap_height"])
         time.sleep(2)
@@ -43,7 +41,7 @@ class PositionListener(Thread):
     def start(self):
         self.__running = True
 
-        super(PositionListener,self).start()
+        super(GPSBroadcaster,self).start()
 
     ## Method for stopping position listener simulation process.
     def stop(self):
@@ -61,13 +59,13 @@ class PositionListener(Thread):
             countFrames += 1
             _, frame = self.cap.read()
 
-            self.i, self.j = self.GPS.tracking_procedure(frame, countFrames)
+            x, y = self.GPS.tracking_procedure(frame, countFrames)
             
-            if self.i != 0.0 or self.j != 0.0:
-                self.sendCoordinates()
+            if x != 0.0 or y != 0.0:
+                self.sendCoordinates(x, y)
 
             print("Time for GPS: ", time.time() - start)
-            time.sleep(0.1)
+            time.sleep(0.01)
         
         self.cap.release()
 
@@ -78,10 +76,10 @@ class PositionListener(Thread):
 
         return cap
 
-    def sendCoordinates(self):
+    def sendCoordinates(self, x, y):
         
         # Send data
-        value = {"RPI": self.RPI_ID, "x": self.i, "y": self.j, "timestamp": round(time.time(), 2)}
+        value = {"RPI": self.RPI_ID, "x": x, "y": y, "timestamp": round(time.time(), 2)}
         message = json.dumps(value)
         # Debug message
         print('sending {!r}'.format(message))
@@ -100,7 +98,7 @@ if __name__ == '__main__':
             "ID3": 3,
             "ID4": 4
         }
-        __rpi_gps = PositionListener(0, 50001, params)
+        __rpi_gps = GPSBroadcaster(1, 50001, params)
         __rpi_gps.start()
     except KeyboardInterrupt:
         # __rpi_gps.__running = False
