@@ -14,6 +14,7 @@ class GPSBroadcaster(Thread):
 
         self.RPI_ID = RPI_ID
         self.coor = None
+        self.params = params
         
         self.cap = self.video(0, params["cap_width"], params["cap_height"])
         time.sleep(2)
@@ -59,6 +60,9 @@ class GPSBroadcaster(Thread):
             countFrames += 1
             _, frame = self.cap.read()
 
+            if self.params["frame_rotate"] == 1:
+                frame = cv2.rotate(frame, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
+
             x, y = self.GPS.tracking_procedure(frame, countFrames)
             
             if x != 0.0 or y != 0.0:
@@ -88,17 +92,18 @@ class GPSBroadcaster(Thread):
 if __name__ == '__main__':
     try:
         params = {
+            "frame_rotate": 1,
             "track_width": 400,
             "track_height": 250,
             "ID_car": 10,
             "cap_width": 640,
             "cap_height": 480,
-            "ID1": 1,
-            "ID2": 2,
-            "ID3": 3,
-            "ID4": 4
+            "Ctl": (0, 0),
+            "Ctr": (405, 0),
+            "Cbr": (405, 640),
+            "Cbl": (0, 640)
         }
-        __rpi_gps = GPSBroadcaster(1, 50001, params)
+        __rpi_gps = GPSBroadcaster(1, 50002, params)
         __rpi_gps.start()
     except KeyboardInterrupt:
         # __rpi_gps.__running = False
