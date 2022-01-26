@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0,'.')
+# sys.path.insert(0,'.')
 from threading import Thread
 import time
 import cv2
@@ -16,12 +16,17 @@ class GPSBroadcaster(Thread):
         self.coor = None
         self.params = params
         
-        self.cap = self.video(0, params["cap_width"], params["cap_height"])
+
+        start = time.time()
+
+        self.cap = self.video(params["cap_width"], params["cap_height"])
+
         time.sleep(2)
 
         if self.cap is None:
             print("Error in cap")
             self.cap.release()
+            sys.exit(0)
 
         self.GPS_PROC = GPS_PROC(params)
         self.__running = True
@@ -61,9 +66,10 @@ class GPSBroadcaster(Thread):
             _, frame = self.cap.read()
 
             if self.params["frame_rotate"] == 1:
-                frame = cv2.rotate(frame, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
+                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-            x, y = self.GPS.tracking_procedure(frame, countFrames)
+            print("Ready to find X, Y!")
+            x, y = self.GPS_PROC.tracking_procedure(frame, countFrames)
             
             if x != 0.0 or y != 0.0:
                 self.sendCoordinates(x, y)
@@ -73,11 +79,12 @@ class GPSBroadcaster(Thread):
         
         self.cap.release()
 
-    def video(id, width, height):
-        cap = cv2.VideoCapture(id)
+    def video(self, width, height):
+        cap = cv2.VideoCapture(0)
+        print("Cap opened!")
         cap.set(3, width)
         cap.set(4, height)
-
+        print("Cap setup ready!")
         return cap
 
     def sendCoordinates(self, x, y):
@@ -93,8 +100,8 @@ if __name__ == '__main__':
     try:
         params = {
             "frame_rotate": 1,
-            "track_width": 400,
-            "track_height": 250,
+            "track_width": 190,
+            "track_height": 310,
             "ID_car": 10,
             "cap_width": 640,
             "cap_height": 480,
@@ -103,9 +110,11 @@ if __name__ == '__main__':
             "Cbr": (405, 640),
             "Cbl": (0, 640)
         }
-        __rpi_gps = GPSBroadcaster(1, 50002, params)
+        __rpi_gps = GPSBroadcaster(2, 50003, params)
         __rpi_gps.start()
     except KeyboardInterrupt:
         # __rpi_gps.__running = False
+        print("Keyboard Interrupt, cap released!")
+        __rpi_gps.cap.release()
         __rpi_gps.stop()
         __rpi_gps.join()

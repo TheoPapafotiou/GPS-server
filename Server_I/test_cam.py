@@ -2,6 +2,8 @@ import cv2
 import time
 
 cap = cv2.VideoCapture(0)
+cap.set(3, 640)
+cap.set(4, 480)
 
 countFrames = 0
 while True:
@@ -13,7 +15,7 @@ while True:
     cv2.imwrite("Preview_"+str(countFrames)+".jpg", frame)
     
 
-    if countFrames == 10:
+    if countFrames == 20:
         break
 
     time.sleep(0.01)
