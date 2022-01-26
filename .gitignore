@@ -1,2 +1,4 @@
 
 Server_test/__pycache__/
+
+*.pyc

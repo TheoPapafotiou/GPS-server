@@ -36,12 +36,12 @@ try:
     from server.utils import load_private_key,sign_data
     from server.complexencoder import ComplexEncoder
 except ImportError:
-    from utils import load_private_key,sign_data
-    from complexencoder import ComplexEncoder
+    from src.utils import load_private_key,sign_data
+    from src.complexencoder import ComplexEncoder
 
 class CarClientServerThread(threading.Thread):
     
-    def __init__(self,serverConfig,logger,keyfile = "privatekey_server_test.pem",carMap={}):
+    def __init__(self,serverConfig,logger,keyfile = "src/privatekey_server_test.pem",carMap={}):
         """ It's a thread to run the server for serving the car clients. By function 'stop' can terminate the client serving.
         """
         super(CarClientServerThread,self).__init__()

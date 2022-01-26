@@ -59,7 +59,7 @@ class LocalizationSystemServer:
 
         try:
             while(True):
-                time.sleep(2.0)
+                time.sleep(0.5)
         except KeyboardInterrupt:
             pass
             
@@ -72,6 +72,7 @@ class LocalizationSystemServer:
         self.__generateData.join()
 
 if __name__ == '__main__':
+
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('root')
     locSysServer = LocalizationSystemServer(logger)

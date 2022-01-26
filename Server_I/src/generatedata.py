@@ -28,7 +28,7 @@
 
 import time
 import threading
-from position_listener import PositionListener
+from src.position_listener import PositionListener
 
 class GenerateData(threading.Thread):
     """ It aims to generate coordinates for server. The object of this class simulates

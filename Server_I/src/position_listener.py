@@ -24,21 +24,21 @@ class PositionListener(Thread):
 
 		## Offsets
 		self.offX1 = 0
-		self.offY1 = distance_Arucos_height * 2
+		self.offY1 = 0
 		
 		self.offX2 = 0
-		self.offY2 = distance_Arucos_height
+		self.offY2 = 160
 
-		self.offX3 = 0
-		self.offY3 = 0
+		self.offX3 = 300
+		self.offY3 = 45
 		
 		self.socket1 = self.init_socket(PORT1)
 		self.socket2 = self.init_socket(PORT2)
 		self.socket3 = self.init_socket(PORT3)
 
 		self.start_time = round(time.time(), 2)
-		self.message = np.array([])
-		self.message = np.append(self.message, [-1, 0, 0, self.start_time])
+		self.message = []
+		self.message.append((-1, 0, 0, self.start_time))
 		
 		self.__running = True
 		
@@ -114,7 +114,7 @@ class PositionListener(Thread):
 				stamp = data['timestamp']
 
 				if x > 0.0 and y > 0.0:
-					self.message = np.vstack(self.message, [RPI_ID, x, y, stamp])
+					self.message.append((RPI_ID, x, y, stamp))
 		except KeyboardInterrupt as e:
 			print(e)
 			pass
