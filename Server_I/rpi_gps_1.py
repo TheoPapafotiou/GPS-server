@@ -72,7 +72,7 @@ class GPSBroadcaster(Thread):
                 frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
             print("Ready to find X, Y!")
-            x, y = self.GPS_PROC.tracking_procedure(frame, countFrames)
+            (x, y) = self.GPS_PROC.tracking_procedure(frame, countFrames)
             
             if x != 0.0 or y != 0.0:
                 self.sendCoordinates(x, y)

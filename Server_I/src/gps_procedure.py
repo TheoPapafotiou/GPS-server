@@ -14,7 +14,7 @@ class GPS_PROC:
         
         ### General Params ###
         self.first_time = True
-        self.coord = np.array([])
+        self.coord = []
         self.height = 0
         self.width = 0
         
@@ -23,7 +23,6 @@ class GPS_PROC:
         self.offset_y = 0
 
         ### ArUCo Lists ###
-        self.points = np.zeros((5, 3))
         self.bottom_left_track = self.params["Cbl"]
         self.bottom_right_track = self.params["Cbr"]
         self.top_left_track = self.params["Ctl"]
@@ -54,8 +53,9 @@ class GPS_PROC:
 
         return cX, cY
         
-    def detect_ArUco(self, frame, flag, points):
+    def detect_ArUco(self, frame, flag):
 
+        points = np.zeros((5, 3))
         correct_detection = False
         (corners, ids, _) = cv2.aruco.detectMarkers(frame, self.arucoDict, parameters=self.arucoParams)
         
@@ -73,6 +73,8 @@ class GPS_PROC:
                 if flag == 1:
                     
                     if markerID == self.params["ID_car"]:
+
+                        print("ArUCo detected!")
                         
                         counter = 0
                 
@@ -104,16 +106,24 @@ class GPS_PROC:
 
     def tracking_procedure(self, img, countFrames):
             
-        img, points, correct_detection = self.detect_ArUco(img, flag=1, points=self.points)
-        point_car = points[0]
-
-        gps_car_x, gps_car_y = self.actual_gps(point_car)
-
-        print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+        img, points, correct_detection = self.detect_ArUco(img, flag=1)
 
         if countFrames == 1:
-            self.coord = np.append(self.coord, [gps_car_x, gps_car_y])
-        else:
-            self.coord = np.vstack(self.coord, [gps_car_x, gps_car_y])
+            cv2.imwrite("Init_frame.jpg", img)
         
-        return self.coord[len(self.coord)-1] 
+        if correct_detection:
+            point_car = points[0]
+
+            gps_car_x, gps_car_y = self.actual_gps(point_car)
+
+            print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+
+            self.coord.append((gps_car_x, gps_car_y))
+
+            return self.coord[len(self.coord) - 1]
+
+        else:
+            print('\n\nNo ArUCo detected, X, Y are set to -1')
+            return((-1, -1))
+        
+        
