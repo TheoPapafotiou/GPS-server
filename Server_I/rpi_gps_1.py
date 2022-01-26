@@ -5,7 +5,10 @@ import time
 import cv2
 import socket
 import json
+import os
+import errno
 from src.gps_procedure import GPS_PROC
+from src.timeout       import timeout
 
 class GPSBroadcaster(Thread):
     """PositionListener simulator aims to populate position variable. 
@@ -79,6 +82,7 @@ class GPSBroadcaster(Thread):
         
         self.cap.release()
 
+    @timeout(10, os.strerror(errno.ETIMEDOUT))
     def video(self, width, height):
         cap = cv2.VideoCapture(0)
         print("Cap opened!")
@@ -99,18 +103,18 @@ class GPSBroadcaster(Thread):
 if __name__ == '__main__':
     try:
         params = {
-            "frame_rotate": 1,
-            "track_width": 190,
-            "track_height": 310,
+            "frame_rotate": 0,
+            "track_width": 300,
+            "track_height": 160,
             "ID_car": 10,
             "cap_width": 640,
             "cap_height": 480,
-            "Ctl": (0, 0),
-            "Ctr": (405, 0),
-            "Cbr": (405, 640),
-            "Cbl": (0, 640)
+            "Ctl": (10, 155),
+            "Ctr": (610, 155),
+            "Cbr": (610, 480),
+            "Cbl": (10, 480)
         }
-        __rpi_gps = GPSBroadcaster(2, 50003, params)
+        __rpi_gps = GPSBroadcaster(1, 50002, params)
         __rpi_gps.start()
     except KeyboardInterrupt:
         # __rpi_gps.__running = False
