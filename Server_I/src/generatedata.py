@@ -67,6 +67,7 @@ class GenerateData(threading.Thread):
             time.sleep(0.2)
             # calculating the position of robot
             position = self.__position_listener.coor
+            print("Sent to car:  X = ", position[0], " Y = ", position[1])
             # calculation the orientation of robot.
             orientation = self.__angularPosition*complex(0.0,1.0)
             # update the dictionary, which contains coordinates of detected robots

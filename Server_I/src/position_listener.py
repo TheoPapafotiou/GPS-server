@@ -26,11 +26,11 @@ class PositionListener(Thread):
 		self.offX1 = 0
 		self.offY1 = 0
 		
-		self.offX2 = 0
-		self.offY2 = 160
+		self.offX2 = 300
+		self.offY2 = 45
 
-		self.offX3 = 300
-		self.offY3 = 45
+		self.offX3 = 0
+		self.offY3 = 160
 		
 		self.socket1 = self.init_socket(PORT1)
 		self.socket2 = self.init_socket(PORT2)
@@ -70,26 +70,27 @@ class PositionListener(Thread):
 		"""
 		while self.__running:
 
-			time.sleep(0.01)
+			time.sleep(0.05)
 
 			message = self.message[len(self.message) - 1]
 			time_diff = time.time() - message[3]
-			print("Time_diff: ", time_diff)
+			# print("Time_diff: ", time_diff)
 
-			if message[0] == 1:
-				X = message[1] + self.offX1
-				Y = message[2] + self.offY1
-			elif message[0] == 2:
-				X = message[1] + self.offX2
-				Y = message[2] + self.offY2
-			elif message[0] == 3:
-				X = message[1] + self.offX3
-				Y = message[2] + self.offY3
-			else:
-				X = 0.0
-				Y = 0.0
+			if message[1] >= 0 and message[2] >= 0:
+				if message[0] == 1:
+					X = message[1] + self.offX1
+					Y = message[2] + self.offY1
+				elif message[0] == 2:
+					X = message[1] + self.offX2
+					Y = message[2] + self.offY2
+				elif message[0] == 3:
+					X = message[1] + self.offX3
+					Y = message[2] + self.offY3
+				else:
+					X = 0.0
+					Y = 0.0
 
-			self.coor = (X, Y)
+				self.coor = (round(X), round(Y))
 
 	def init_socket(self, PORT):
 		
