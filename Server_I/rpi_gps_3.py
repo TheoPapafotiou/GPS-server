@@ -71,7 +71,6 @@ class GPSBroadcaster(Thread):
             if self.params["frame_rotate"] == 1:
                 frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-            print("Ready to find X, Y!")
             (x, y) = self.GPS_PROC.tracking_procedure(frame, countFrames)
             
             if x != 0.0 or y != 0.0:
