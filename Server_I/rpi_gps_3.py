@@ -77,7 +77,7 @@ class GPSBroadcaster(Thread):
                 self.sendCoordinates(x, y)
 
             print("Time for GPS: ", time.time() - start)
-            time.sleep(0.01)
+            time.sleep(0.1)
         
         self.cap.release()
 
