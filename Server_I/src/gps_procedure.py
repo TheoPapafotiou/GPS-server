@@ -74,7 +74,7 @@ class GPS_PROC:
                     
                     if markerID == self.params["ID_car"]:
 
-                        print("ArUCo detected!")
+                        # print("ArUCo detected!")
                         
                         counter = 0
                 
@@ -116,14 +116,14 @@ class GPS_PROC:
 
             gps_car_x, gps_car_y = self.actual_gps(point_car)
 
-            print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            # print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
 
             self.coord.append((gps_car_x, gps_car_y))
 
             return self.coord[len(self.coord) - 1]
 
         else:
-            print('\n\nNo ArUCo detected, X, Y are set to -1')
+            # print('\n\nNo ArUCo detected, X, Y are set to -1')
             return((-1, -1))
         
         

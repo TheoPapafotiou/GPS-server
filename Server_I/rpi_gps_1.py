@@ -76,7 +76,7 @@ class GPSBroadcaster(Thread):
             if x != 0.0 or y != 0.0:
                 self.sendCoordinates(x, y)
 
-            print("Time for GPS: ", time.time() - start)
+            # print("Time for GPS: ", time.time() - start)
             time.sleep(0.1)
         
         self.cap.release()
@@ -96,7 +96,7 @@ class GPSBroadcaster(Thread):
         value = {"RPI": self.RPI_ID, "x": x, "y": y, "timestamp": round(time.time(), 2)}
         message = json.dumps(value)
         # Debug message
-        print('sending {!r}'.format(message))
+        # print('sending {!r}'.format(message))
         sent = self.sock.sendto(message.encode('utf-8'), self.server_address)
 			
 if __name__ == '__main__':
