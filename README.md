@@ -1,4 +1,4 @@
-# Run the GPS-Server
+# Run the **updated** GPS-Server
 In order to run and receive coordinates from the GPS-server, you should follow the steps below:
 - Plug in the Power Adaptors of the RPIs (photo TBD).
 
