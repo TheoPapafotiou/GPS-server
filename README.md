@@ -18,6 +18,8 @@ python3 host_gps.py
 ```
 And you are done!
 
+*Don't forget to place the **ArUCo Marker** on the car to receive its coordinates!*
+
 # On GPS-RPIs (<u>**ONLY**</u> for debugging)
 ## IP-addresses
 - 192.168.0.102
