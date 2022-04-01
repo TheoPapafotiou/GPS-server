@@ -21,7 +21,7 @@ def runServers():
 
         # Set to true for output on LCD screen
         # Get time stamp when starting tester
-        timeout_duration = 60
+        timeout_duration = 3600
         start_time = time.time()
 
         # Create broadcaster object
