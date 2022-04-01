@@ -33,9 +33,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key, l
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from pathlib import Path
 
-print(Path("privatekey_server_test").absolute()) 
 
 def gen_key():
     private_key = rsa.generate_private_key(
@@ -75,7 +73,7 @@ def load_public_key(filename):
     return public_key
 
 
-def sign_data(private_key,plain_text):
+def sign_data(private_key, plain_text):
     # SIGN DATA/STRING
     signature = private_key.sign(
         data=plain_text,
@@ -87,11 +85,11 @@ def sign_data(private_key,plain_text):
     )
     return signature
 
-def verify_data(public_key,plain_text,signature):
+def verify_data(public_key, plain_text, signature):
     try:
         public_key.verify(
             signature=signature,
-            data=plain_text.encode('utf-8'),
+            data=plain_text,
             padding=padding.PSS(
                 mgf=padding.MGF1(hashes.MD5()),
                 salt_length=padding.PSS.MAX_LENGTH

@@ -35,13 +35,13 @@ class ServerBeaconThread(Thread):
 	""" This class implementing a thread with a broadcast functionality
 	Periodically sends broadcast signalling itself as the server
 	"""
-	def __init__(self,serverConfig,sleepDuration,logger):
+	def __init__(self, serverConfig, sleepDuration, logger):
 		Thread.__init__(self)
-		self.name='ServerBeaconThread'
+		self.name = 'ServerBeaconThread'
 		self.sleepDuration = sleepDuration
 		
 		self.serverConfig = serverConfig
-		self.runningThread = True
+		self.__isRunning = True
 		self.logger = logger
 
 	"""It aims to send a message on broadcast in each period. The message contains the port, where 
@@ -58,22 +58,18 @@ class ServerBeaconThread(Thread):
 			self.logger.info(self.name+' started')
 			
 			# Sending the message periodically
-			try:
-				print(str(self.serverConfig.carClientPort))
-				msg = bytes(str(self.serverConfig.carClientPort), encoding='utf8')
-			except Exception as e:
-				print(e)
-			while self.runningThread:
-				beacon.sendto( msg , (self.serverConfig.broadcast_ip, self.serverConfig.negotiation_port))
+			msg = bytes(str(self.serverConfig.carClientPort), 'utf-8')
+			while self.__isRunning:
+				beacon.sendto(msg , (self.serverConfig.broadcast_ip, self.serverConfig.negotiation_port))
 				time.sleep(self.sleepDuration)
 			# Close the connection
 			beacon.close()
 
 			self.logger.info(self.name+' stoped')
 		except Exception as e:
-			self.runningThread=False
-			self.logger.warning(self.name+' stoped with exception '+str(e))
+			self.__isRunning = False
+			self.logger.warning(self.name + ' stoped with exception ' + str(e))
 	## Stop thread.
 	#  @param self   The object pointer. 
 	def stop(self):
-		self.runningThread=False
+		self.__isRunning = False

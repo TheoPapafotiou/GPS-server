@@ -26,31 +26,22 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-import os
+
 import json
 import threading
 import socketserver
 import socket
 import time
-import re
-# from cryptography.utils import signature
-from pathlib import Path
 
-privateKeyPath = Path("/home/pi/Desktop/VROOM_Servers/privatekey_server_test.pem").absolute() 
-
-try:
-    from server.utils import load_private_key, load_public_key, sign_data, verify_data
-except ImportError:
-    from utils import load_private_key, load_public_key, sign_data, verify_data
-
+from env_inf_server.server.utils import load_private_key, load_public_key, sign_data, verify_data
 
 class CarClientServerThread(threading.Thread):
     
-    def __init__(self, serverConfig, dataSaver, logger, keyfile = privateKeyPath):
+    def __init__(self, serverConfig, logger, keyfile, markerSet, clientkeys):
         """ It's a thread to run the server for serving the car clients. By function 'stop' can terminate the client serving.
         """
         super(CarClientServerThread,self).__init__()
-        self.carclientserver = CarClientServer(serverConfig, CarClientHandler, dataSaver , logger, keyfile)
+        self.carclientserver = CarClientServer(serverConfig, CarClientHandler, logger, keyfile, markerSet, clientkeys)
         self.carclientserver.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def run(self):
@@ -68,22 +59,39 @@ class CarClientServer (socketserver.ThreadingTCPServer, object):
     is equal with id of Aruco marker placed on robot. The client requests are handled by objects of 'CarClientHandler' class. 
     
     """
-    def __init__(self, serverConfig, requestHandler, dataSaver, logger, keyfile):
+    def __init__(self, serverConfig, requestHandler, logger, keyfile, markerSet, clientkeys):
         # This map contains the last recorded data
         self.private_key = load_private_key(keyfile)
+        self.client_keys_path = clientkeys
         #: contains the last received coordination fo the carId.
+        self._markerSet = markerSet
         self.logger = logger
-        self.dataSaver = dataSaver
 
         #: shutdown mechanism
         self.isRunning = True
         # initialize the connection parameters
-        connection = (serverConfig.localip,serverConfig.carClientPort)
-        super(CarClientServer,self).__init__(connection,requestHandler)
+        connection = (serverConfig.localip, serverConfig.carClientPort)
+        super(CarClientServer,self).__init__(connection, requestHandler)
+    
+    def savePosition(self, id, obs, x, y):
+        """Check the existence of robot in dictionary. It returns false, if the robot wasn't detected yet. 
+        
+        Parameters
+        ----------
+        id : int
+            id number of robot
+        
+        Returns
+        -------
+        boolean
+        """
+        try:
+            return self._markerSet.saveitem(id, obs, x, y)
+        except:
+            return None
     
     def shutdown(self):
         self.isRunning = False
-        self.dataSaver.saving()
         super(CarClientServer,self).shutdown()
 
 class CarClientHandler(socketserver.BaseRequestHandler):
@@ -99,22 +107,20 @@ class CarClientHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # receiving car id from client 
-        data = str(self.request.recv(1024))
-        data = re.sub('[^\d]','', data)
-        self.carId = int(data)
-
+        data = self.request.recv(1024)
+        carId = int(data.decode())
+        
         # receiving signature from the client
         signature = self.request.recv(4096)
         
         # Each participating team will have a unique ID to connect to the server. The public keys made available by the students to the 
-        # organizers will be stored in the key folder, with the corresponding connection id.
-        
-        dirname = os.path.dirname(__file__)
-        client_key_public_path = dirname + "/keys/" + str(self.carId) + "_publickey.pem"
+        # organizers will be stored i the key folder, with the corresponding id.
+ 
+        client_key_public_path = self.server.client_keys_path + str(carId) + "_publickey.pem"
         try:
             client_key_public = load_public_key(client_key_public_path)
         except:
-            msg = 'Client ' + str(self.carId) + ' trying to connect. no key available.'
+            msg = 'Client ' + str(carId) + ' trying to connect. no key available.'
             raise Exception(msg)
         
         # verifying the client authentication
@@ -127,8 +133,9 @@ class CarClientHandler(socketserver.BaseRequestHandler):
 
         # Authentication
         timestamp = time.time()
-        msg = ("Connected! " + str(timestamp)).encode('utf-8')
-        signature = sign_data(self.server.private_key,msg)
+        msg_s = "Conneted! " + str(timestamp)
+        msg = msg_s.encode('utf-8')
+        signature = sign_data(self.server.private_key, msg)
         
         # Authentication of server        
         self.request.sendall(msg)
@@ -137,23 +144,21 @@ class CarClientHandler(socketserver.BaseRequestHandler):
         
         # receiving ok response from the client
         msg = self.request.recv(4096)
-        if msg == 'Authentication not ok':
-            raise Exception(msg)
         
-        self.server.logger.info('Connecting with {}. CarId is {}'.format(self.client_address,self.carId))
+        if  msg.decode('utf-8') != 'Authentication ok':
+            raise Exception("Authentication broken")
+        
+        self.server.logger.info('Connecting with {}. CarId is {}'.format(self.client_address, carId))
         
         try:
             while(self.server.isRunning):
-                msg = self.request.recv(4096)
-                msg = msg.decode('utf-8')
+                msg = self.request.recv(4096).decode('utf-8')
                 if(msg == ''):
-                    print('Invalid message. Connection interrupted.')
+                    self.server.logger.info('Invalid message. Connection interrupted.')
                     break
                 received = json.loads(msg)
-                self.server.logger.info('card ID {}. message ID {}. x: {}. y: {}'.format(self.carId, received['OBS'], received['x'], received['y']))
-                self.server.dataSaver.ADDobstacle(self.carId, received['OBS'], received['x'], received['y'])
-            
-            time.sleep(0.25)
+
+                self.server.savePosition(carId, received['OBS'], received['x'], received['y'])
                 
         except Exception as e:
             self.server.logger.warning("Close serving for {}. Error: {}".format(self.client_address,e))

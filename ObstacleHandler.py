@@ -4,7 +4,7 @@ import socket
 from serverconfig import ServerConfig
 from carclientserver import CarClientServerThread
 from serverbeacon import ServerBeaconThread
-from data_saver import DataSaver
+from data_collector import MarkerDataSet
 
 import logging
 import time
@@ -13,6 +13,7 @@ class oh(Thread):
     """Class used for running broadcaster algorithm for simulated obstacle handler.
     """
     def __init__(self, logger):
+
         self.RUN_OH = False
 
         # Communication parameters, create and bind socket
@@ -25,26 +26,26 @@ class oh(Thread):
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.server_address = (self.BCAST_ADDRESS, self.PORT)
 
-
         # Init communication with client 
-        self.serverconfig = ServerConfig('<broadcast>',23456,23466)
-        self.data_saver = DataSaver()
-        
-        self.__carclientserverThread = CarClientServerThread(self.serverconfig, self.data_saver, logger)
-        self.__beaconserverThread =  ServerBeaconThread(self.serverconfig,1.0,logger)
+        logging.basicConfig(level=logging.INFO)
+        self.__logger = logging.getLogger('root')
 
-        Thread.__init__(self)
+        self.markerSet = MarkerDataSet()
+        self.serverconfig = ServerConfig('<broadcast>', 23456, 23466)
+        privateKeyFile = "privatekey_server_test.pem"
+        clientkeys = "keys/"
 
+        self.__carclientserverThread = CarClientServerThread(self.serverconfig, self.__logger, keyfile = privateKeyFile, markerSet = self.markerSet, clientkeys = clientkeys)
+        self.__beaconserverThread =  ServerBeaconThread(self.serverconfig, 1.0, self.__logger)
+     
     def run(self):    
-        try:
-            self.__carclientserverThread.start()
-        except Exception as e:
-            print(e)
+        self.__carclientserverThread.start()
         self.__beaconserverThread.start()
  
         try:
             while(True):
-                time.sleep(2.0)
+                time.sleep(1.0)
+                self.__logger(self.markerSet.getlist())
         except KeyboardInterrupt:
             pass
              
