@@ -37,7 +37,9 @@ class oh(Thread):
 
         self.__carclientserverThread = CarClientServerThread(self.serverconfig, self.__logger, keyfile = privateKeyFile, markerSet = self.markerSet, clientkeys = clientkeys)
         self.__beaconserverThread =  ServerBeaconThread(self.serverconfig, 1.0, self.__logger)
-     
+
+        Thread.__init__(self)
+
     def run(self):    
         self.__carclientserverThread.start()
         self.__beaconserverThread.start()
@@ -45,7 +47,7 @@ class oh(Thread):
         try:
             while(True):
                 time.sleep(1.0)
-                self.__logger(self.markerSet.getlist())
+                self.__logger.info(self.markerSet.getlist())
         except KeyboardInterrupt:
             pass
              

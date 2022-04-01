@@ -12,6 +12,7 @@ def runServers():
     # LCD Print
     lcdON = True
     lcd = LCD(numofTL=3)
+    carID = 120
 
     try:        
         """Method for sending the simulated semaphore signals.
@@ -37,8 +38,13 @@ def runServers():
         while (time.time()-start_time < timeout_duration):
             if lcdON:
                 lcd.TLstate = [Adv.main_state, Adv.main_state, Adv.start_state]
-                if(ObsHanServer.data_saver.appends) > 0:
-                    lcd.detectedObject = ObsHanServer.data_saver.return_obstacle()
+
+                if ObsHanServer.markerSet.getlist():
+                    
+                    detected_objects = ObsHanServer.markerSet.getlist()[carID]
+                    num_of_objects = len(detected_objects)
+
+                    lcd.detectedObject = detected_objects[num_of_objects]['obstacle_id']
 
                 lcd.runLCD()
                 time.sleep(0.5)

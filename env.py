@@ -53,7 +53,7 @@ class ObstacleHandlerSystemServer:
 
         self.__carclientserverThread = CarClientServerThread(self.serverconfig, self.__logger, keyfile = privateKeyFile, markerSet = self.markerSet, clientkeys = clientkeys)
         self.__beaconserverThread =  ServerBeaconThread(self.serverconfig, 1.0, self.__logger)
-     
+        
     def run(self):    
         self.__carclientserverThread.start()
         self.__beaconserverThread.start()
