@@ -32,6 +32,7 @@ class oh(Thread):
 
         self.markerSet = MarkerDataSet()
         self.serverconfig = ServerConfig('<broadcast>', 23456, 23466)
+        # privateKeyFile = "home/pi/Desktop/VROOM_Servers/privatekey_server_test.pem"
         privateKeyFile = "privatekey_server_test.pem"
         clientkeys = "keys/"
 
