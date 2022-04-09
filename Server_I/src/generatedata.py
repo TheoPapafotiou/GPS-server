@@ -37,45 +37,60 @@ class GenerateData(threading.Thread):
     for 40 robot on the race track. So car client can subscribe on a car id number between 1 and 40. 
     """ 
 
-    def __init__(self,carclientserver, r = 1.0):
+    def __init__(self, markerdataset = {}, r = 1.0):
         super(GenerateData,self).__init__()
-        
-        self.__position_listener = PositionListener()
+        #: circle radius
+        self.__r = complex(1.0,0.0)
+        #: circle center
+        self.__circleCenter = complex(0,0)
         #: current angular position based on circle center
         self.__angularPosition = complex(1.0,0.0)
         #: angular velocity (angular/second) based on circle center
-        self.__angularVelocity = complex(0.9848,0.1736)
+        self.__angularVelocity = complex(0.9848, 0.1736)
 
-        #: car client server
-        self.__carclientserver  = carclientserver
+        self._marker_dic = markerdataset
+
+        self.locker = threading.Lock()
 
         self.__running = True
         
         #: inferior value of car id number
-        self.__startCarid = 10
+        self.__startCarid = 1
         #: superior value of car id number
-        self.__endCarid = 11
+        self.__endCarid = 40
+
+        self.__position_listener = PositionListener()
     
     def run(self):
         """ Actualize the car client server data with the new coordinates. 
         """
         self.__position_listener.start()
         time.sleep(2)
-
         while self.__running:
             # waiting a period
-            time.sleep(0.2)
+            time.sleep(0.25)
             # calculating the position of robot
             position = self.__position_listener.coor
             print("Sent to car:  X = ", position[0], " Y = ", position[1])
             # calculation the orientation of robot.
-            orientation = self.__angularPosition*complex(0.0,1.0)
+            orientation = self.__angularPosition*complex(0.0, 1.0)
             # update the dictionary, which contains coordinates of detected robots
-            for carId in range( self.__startCarid,self.__endCarid):
-                self.__carclientserver._carMap[carId] = {'timestamp':time.time(),'coor':(position,orientation)}
+            for carId in range( self.__startCarid, self.__endCarid):
+                with self.locker:
+                    self._marker_dic[carId] = {'timestamp':time.time(), 'coor':(position, orientation)}
             # update angular position
             self.__angularPosition *= self.__angularVelocity
 
+    def getItem(self, markerId):
+        """Get timestamp and pose of markerId
+        
+        Parameters
+        ----------
+        markerId : int
+            The identification number of marker.
+        """
+        with self.locker:
+            return self._marker_dic[markerId]
+
     def stop(self):
         self.__running = False
-    
