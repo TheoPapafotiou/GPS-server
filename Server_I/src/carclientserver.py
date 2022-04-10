@@ -179,14 +179,12 @@ class CarClientHandler(socketserver.BaseRequestHandler):
         self.server.logger.info('Connecting with {}. CarId is {}'.format(self.client_address, carId))
         # Sending the coordinates for car client
         try:
-            CarRecpPipe = self.server.getCarPipe(carId, timestamp)
+            # CarRecpPipe = self.server.getCarPipe(carId, timestamp)
             while(self.server.isRunning):
-                # print(CarRecpPipe)
-                data = CarRecpPipe
+                data = self.server.getCarPipe(carId, timestamp)
                 msg = json.dumps(data, cls=ComplexEncoder)
-                print(msg)
-                # msg = json.loads(msg)
                 self.request.sendall(msg.encode('utf-8'))
+                time.sleep(0.1)
                 
         except Exception as e:
             self.server.logger.warn("Close serving for {}. Error: {}".format(self.client_address, e))
