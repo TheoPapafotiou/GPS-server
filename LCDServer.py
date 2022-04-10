@@ -55,7 +55,9 @@ class LCD():
         self.lcd.clear()
 
         try:
-            lcd_TLline = "TL = {" + str(self.TLcolor[str(self.TLstate[0])]) + " " + str(self.TLcolor[str(self.TLstate[1])]) + " " + str(self.TLcolor[str(self.TLstate[2])]) + "}\n"
+            lcd_TLline = "TL = {" + str(self.TLcolor[str(self.TLstate[0])]) + " " + str(self.TLcolor[str(self.TLstate[1])]) + " " + \
+                                        str(self.TLcolor[str(self.TLstate[2])]) + " " + str(self.TLcolor[str(self.TLstate[0])]) + "}\n"
+                                        
             lcd_OHline = "Found:" + str(self.objects[str(self.detectedObject)])
             # combine both lines into one update to the display
             self.lcd.message = lcd_TLline + lcd_OHline

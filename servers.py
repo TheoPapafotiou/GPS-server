@@ -37,7 +37,7 @@ def runServers():
         # Wait until 60 seconds passed
         while (time.time()-start_time < timeout_duration):
             if lcdON:
-                lcd.TLstate = [Adv.main_state, Adv.main_state, Adv.start_state]
+                lcd.TLstate = [Adv.main_state, Adv.main_state, Adv.start_state, Adv.start_state]
 
                 if ObsHanServer.markerSet.getlist():
                     
