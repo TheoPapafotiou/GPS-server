@@ -38,7 +38,7 @@ class PositionListener(Thread):
 
 		self.start_time = round(time.time(), 2)
 		self.message = []
-		self.message.append((-1, 0, 0, self.start_time))
+		self.message.append((-1, 0, 0, 0, self.start_time))
 		
 		self.__running = True
 		
@@ -73,7 +73,7 @@ class PositionListener(Thread):
 			time.sleep(0.05)
 
 			message = self.message[len(self.message) - 1]
-			time_diff = time.time() - message[3]
+			time_diff = time.time() - message[4]
 			# print("Time_diff: ", time_diff)
 
 			if message[1] >= 0 and message[2] >= 0:
@@ -89,8 +89,10 @@ class PositionListener(Thread):
 				else:
 					X = 0.0
 					Y = 0.0
+				
+				rot = message[3]
 
-				self.coor = (round(X), round(Y))
+				self.coor = (round(X), round(Y), rot)
 
 	def init_socket(self, PORT):
 		
@@ -112,10 +114,11 @@ class PositionListener(Thread):
 				RPI_ID = data['RPI']
 				x = data['x']
 				y = data['y']
+				rot = data['rot']
 				stamp = data['timestamp']
 
 				if x > 0.0 and y > 0.0:
-					self.message.append((RPI_ID, x, y, stamp))
+					self.message.append((RPI_ID, x, y, rot, stamp))
 		except KeyboardInterrupt as e:
 			print(e)
 			pass

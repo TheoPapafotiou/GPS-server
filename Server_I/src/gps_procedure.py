@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import math
 
 class GPS_PROC:
     def __init__(self, params):
@@ -39,7 +40,7 @@ class GPS_PROC:
         self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
 
-    def find_center(self, corners):
+    def calc_center_rot(self, corners):
         (topLeft, topRight, bottomRight, bottomLeft) = corners
                     
         # convert each of the (x, y)-coordinate pairs to integers
@@ -51,7 +52,17 @@ class GPS_PROC:
         cX = int((topLeft[0] + bottomRight[0]) / 2.0)
         cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
-        return cX, cY
+        # ---- Calculate rotation -----
+        xA = [bottomLeft[0], topLeft[0]]
+        xB = [bottomRight[0], topRight[0]]
+        yA = [bottomLeft[1], topLeft[1]]
+        yB = [bottomRight[1], topRight[1]] 
+
+        rotA, _ = round(np.polyfit(xA, yA, deg=1), 4)
+        rotB, _ = round(np.polyfit(xB, yB, deg=1), 4)
+        rot = np.average([math.atan2(rotA), math.atan2(rotB)])
+
+        return cX, cY, rot
         
     def detect_ArUco(self, frame, flag):
 
@@ -79,13 +90,13 @@ class GPS_PROC:
                         counter = 0
                 
                         corners = markerCorner.reshape((4, 2))
-                        cX, cY = self.find_center(corners)
+                        cX, cY, rot = self.calc_center_rot(corners)
                         points[counter] = (cX, cY, markerID)                 
 
                     if cX > 0 and cY > 0:
                         correct_detection = True 
 
-        return frame, points, correct_detection
+        return frame, points, rot, correct_detection
 
     def actual_gps(self, point_car):
         
@@ -106,7 +117,7 @@ class GPS_PROC:
 
     def tracking_procedure(self, img, countFrames):
             
-        img, points, correct_detection = self.detect_ArUco(img, flag=1)
+        img, points, rot, correct_detection = self.detect_ArUco(img, flag=1)
 
         if countFrames == 1:
             cv2.imwrite("Init_frame.jpg", img)
@@ -118,12 +129,12 @@ class GPS_PROC:
 
             # print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
 
-            self.coord.append((gps_car_x, gps_car_y))
+            self.coord.append((gps_car_x, gps_car_y, rot))
 
             return self.coord[len(self.coord) - 1]
 
         else:
             # print('\n\nNo ArUCo detected, X, Y are set to -1')
-            return((-1, -1))
+            return((-1, -1, -1))
         
         

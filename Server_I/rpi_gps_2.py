@@ -18,12 +18,8 @@ class GPSBroadcaster(Thread):
         self.RPI_ID = RPI_ID
         self.coor = None
         self.params = params
-        
-
-        start = time.time()
 
         self.cap = self.video(params["cap_width"], params["cap_height"])
-
         time.sleep(2)
 
         if self.cap is None:
@@ -73,10 +69,10 @@ class GPSBroadcaster(Thread):
 
             if countFrames == 50:
                 cv2.imwrite('Base_frame_' + str(self.RPI_ID) + '.jpg', frame)
-            (x, y) = self.GPS_PROC.tracking_procedure(frame, countFrames)
+            (x, y, rot) = self.GPS_PROC.tracking_procedure(frame, countFrames)
             
             if x != 0.0 or y != 0.0:
-                self.sendCoordinates(x, y)
+                self.sendCoordinates(x, y, rot)
 
             # print("Time for GPS: ", time.time() - start)
             time.sleep(0.1)
@@ -92,10 +88,10 @@ class GPSBroadcaster(Thread):
         print("Cap setup ready!")
         return cap
 
-    def sendCoordinates(self, x, y):
+    def sendCoordinates(self, x, y, rot):
         
         # Send data
-        value = {"RPI": self.RPI_ID, "x": x, "y": y, "timestamp": round(time.time(), 2)}
+        value = {"RPI": self.RPI_ID, "x": x, "y": y, "rot": rot, "timestamp": round(time.time(), 2)}
         message = json.dumps(value)
         # Debug message
         # print('sending {!r}'.format(message))
