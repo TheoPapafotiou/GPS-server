@@ -72,6 +72,7 @@ class GPS_PROC:
         
         cX = 0
         cY = 0
+        rot = 0
 
         if len(corners) > 0:
             # flatten the ArUco IDs list
