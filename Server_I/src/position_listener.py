@@ -93,6 +93,7 @@ class PositionListener(Thread):
 				rot = message[3]
 
 				self.coor = (round(X), round(Y), rot)
+				print(self.coor)
 
 	def init_socket(self, PORT):
 		

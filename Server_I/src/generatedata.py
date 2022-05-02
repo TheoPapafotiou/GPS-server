@@ -34,11 +34,11 @@ class GenerateData(threading.Thread):
             # waiting a period
             time.sleep(0.25)
             # calculating the position of robot
-            position = self.__position_listener.coor
-            position = complex(position[0], position[1])
+            pos = self.__position_listener.coor
+            position = complex(pos[0], pos[1])
             # print("Sent to car:  X + jY = ", position)
             # calculation the orientation of robot.
-            orientation = position[2]
+            orientation = pos[2]
             # update the dictionary, which contains coordinates of detected robots
             for carId in range( self.__startCarid, self.__endCarid):
                 with self.locker:
