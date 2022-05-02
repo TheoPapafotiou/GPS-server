@@ -69,7 +69,6 @@ class GPSBroadcaster(Thread):
 
             if countFrames == 50:
                 cv2.imwrite('Base_frame_' + str(self.RPI_ID) + '.jpg', frame)
-            print("Before tracking procedure")
             (x, y, rot) = self.GPS_PROC.tracking_procedure(frame, countFrames)
             print(x, y, rot)
             
