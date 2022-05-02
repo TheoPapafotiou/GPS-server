@@ -58,9 +58,19 @@ class GPS_PROC:
         yA = [bottomLeft[1], topLeft[1]]
         yB = [bottomRight[1], topRight[1]] 
 
-        rotA, _ = np.polyfit(xA, yA, deg=1)
-        rotB, _ = np.polyfit(xB, yB, deg=1)
-        rot = round(np.average([math.atan2(rotA), math.atan2(rotB)]), 2)
+        slopeA, _ = np.polyfit(xA, yA, deg=1)
+        slopeB, _ = np.polyfit(xB, yB, deg=1)
+
+        rotA = math.atan(slopeA)
+        rotB = math.atan(slopeB)
+        if xA[0] > xA[1] and xB[0] > xB[1]:
+            if rotA > 0
+                rotA = 180 - rotA
+                rotB = 180 - rotB
+            if rotA < 0
+                rotA = -180 - rotA
+                rotB = -180 - rotB
+        rot = round(np.average([rotA, rotB]), 2)
 
         return cX, cY, rot
         
