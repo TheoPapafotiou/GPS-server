@@ -64,10 +64,10 @@ class GPS_PROC:
         rotA = math.atan(slopeA)
         rotB = math.atan(slopeB)
         if xA[0] > xA[1] and xB[0] > xB[1]:
-            if rotA > 0
+            if rotA > 0:
                 rotA = 180 - rotA
                 rotB = 180 - rotB
-            if rotA < 0
+            if rotA < 0:
                 rotA = -180 - rotA
                 rotB = -180 - rotB
         rot = round(np.average([rotA, rotB]), 2)
