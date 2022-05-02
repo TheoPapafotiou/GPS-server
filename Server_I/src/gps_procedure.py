@@ -128,7 +128,7 @@ class GPS_PROC:
 
             gps_car_x, gps_car_y = self.actual_gps(point_car)
 
-            # print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
+            print('\n\nThe car GPS coordinates are: X -> ', gps_car_x, ' || Y -> ', gps_car_y)
 
             self.coord.append((gps_car_x, gps_car_y, rot))
 
