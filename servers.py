@@ -1,8 +1,9 @@
 from ObstacleHandler import oh
 from TLSimulator import sim
+from LocalizationServer import loc
 import time 
 import logging
-from LCDServer import LCD
+from LCDServer import LCDServer
 from pathlib import Path
 
 print(Path("servers.py").absolute())
@@ -11,7 +12,7 @@ def runServers():
 
     # LCD Print
     lcdON = True
-    lcd = LCD(numofTL=3)
+    lcd = LCDServer(numofTL=3)
     carID = 120
 
     try:        
@@ -22,7 +23,7 @@ def runServers():
 
         # Set to true for output on LCD screen
         # Get time stamp when starting tester
-        timeout_duration = 3600
+        timeout_duration = 3600*2
         start_time = time.time()
 
         # Create broadcaster object
@@ -30,9 +31,12 @@ def runServers():
         
         ObsHanServer = oh(logger)
 
+        LocServer = loc(logger)
+
         # Start the broadcaster
         Adv.start()
         ObsHanServer.start()
+        LocServer.start()
 
         # Wait until 60 seconds passed
         while (time.time()-start_time < timeout_duration):
@@ -51,9 +55,11 @@ def runServers():
 
         # Stop the broadcaster
         Adv.stop()
+        LocServer.stop()
     except KeyboardInterrupt:
         lcd.stopLCD()
         Adv.stop()
+        LocServer.stop()
 
 runServers()
 # runAdvertiser()

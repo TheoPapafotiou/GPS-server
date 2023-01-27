@@ -1,10 +1,10 @@
 from threading import Thread
 import socket
 
-from serverconfig import ServerConfig
-from carclientserver import CarClientServerThread
-from serverbeacon import ServerBeaconThread
-from data_collector import MarkerDataSet
+from env_system.serverconfig import ServerConfig
+from env_system.carclientserver import CarClientServerThread
+from env_system.serverbeacon import ServerBeaconThread
+from env_system.data_collector import MarkerDataSet
 
 import logging
 import time
@@ -33,7 +33,7 @@ class oh(Thread):
         self.markerSet = MarkerDataSet()
         self.serverconfig = ServerConfig('<broadcast>', 23456, 23466)
         # privateKeyFile = "home/pi/Desktop/VROOM_Servers/privatekey_server_test.pem"
-        privateKeyFile = "privatekey_server_test.pem"
+        privateKeyFile = "env_system/privatekey_server_test.pem"
         clientkeys = "keys/"
 
         self.__carclientserverThread = CarClientServerThread(self.serverconfig, self.__logger, keyfile = privateKeyFile, markerSet = self.markerSet, clientkeys = clientkeys)
